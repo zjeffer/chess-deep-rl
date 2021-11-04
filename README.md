@@ -22,5 +22,5 @@ To train the network, optimize the weights of the neural network by comparing th
 * https://chess.stackexchange.com/questions/19401/how-does-alphazero-learn-to-evaluate-a-position-it-has-never-seen
 * https://medium.com/applied-data-science/how-to-build-your-own-alphazero-ai-using-python-and-keras-7f664945c188
 * https://medium.com/applied-data-science/how-to-build-your-own-muzero-in-python-f77d5718061a
-
+* https://towardsdatascience.com/can-deep-reinforcement-learning-solve-chess-b9f52855cd1e
 
