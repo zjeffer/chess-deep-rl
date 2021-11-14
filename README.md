@@ -23,4 +23,12 @@ To train the network, optimize the weights of the neural network by comparing th
 * https://medium.com/applied-data-science/how-to-build-your-own-alphazero-ai-using-python-and-keras-7f664945c188
 * https://medium.com/applied-data-science/how-to-build-your-own-muzero-in-python-f77d5718061a
 * https://towardsdatascience.com/can-deep-reinforcement-learning-solve-chess-b9f52855cd1e
+* https://arxiv.org/abs/1712.01815
+* https://www.sciencedirect.com/science/article/pii/S0925231221005245
+* https://link.springer.com/chapter/10.1007/3-540-45579-5_18
+* https://python-chess.readthedocs.io/en/latest/
 
+## Interesting videos
+
+* https://www.youtube.com/watch?v=2pWv7GOvuf0&list=PLqYmG7hTraZDM-OYHWgPebj2MfCFzFObQ
+* https://www.youtube.com/watch?v=uPUEq8d73JI&t=317s
