@@ -1,5 +1,5 @@
 import chess
-
+import numpy as np
 
 # class for chess environment
 class ChessEnv:
@@ -81,3 +81,4 @@ if __name__ == "__main__":
     chessEnv = ChessEnv()
     state = chessEnv.board_to_state(chessEnv.board)
     ChessEnv.print_board(state[0])
+    print(np.array(state).shape)
