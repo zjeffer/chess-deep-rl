@@ -28,14 +28,8 @@ class Agent:
 			input_shape, output_shape, nr_hidden_layers=19)
 		self.model = model_builder.build_model()
 
-		# mcts tree
-		self.mcts = MCTS()
-
 		# memory
 		self.memory = []
-
-	def reset(self):
-		self.chess_env.reset()
 
 	def play_one_move(self):
 		pass
@@ -51,13 +45,3 @@ class Agent:
 		Do this by playing x games. If the new network wins more, it is the new best model 
 		"""
 		pass
-
-
-if __name__ == "__main__":
-	env = ChessEnv()
-	agent = Agent()
-	# opponent = Agent()
-
-	print(agent.model.summary())
-
-	# play a game
