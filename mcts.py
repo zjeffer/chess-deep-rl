@@ -75,10 +75,12 @@ class MCTS:
 	def backpropagate(self, end_node):
 		print("Backpropagation...")
 		# TODO: implement
+		from chess import Move
 
 		print(end_node.state)
 		print(end_node.state.result())
-		print(end_node.state)
+		game = chess.pgn.Game.from_board(board=end_node.state)
+		print(game)
 		
 		print("Backpropagation finished!")
 
