@@ -6,6 +6,7 @@ import random
 
 from chessEnv import ChessEnv
 from node import Node
+from edge import Edge
 import numpy as np
 import time
 
@@ -16,17 +17,18 @@ logging.basicConfig(level=logging.INFO)
 
 
 class MCTS:
-    def __init__(self, env: ChessEnv = ChessEnv()):
-        self.root = Node(state=env.board)
+    def __init__(self, env: ChessEnv):
+        self.env = env
+        self.root = Node(state=self.env.board)
         self.amount_of_simulations = 0
         self.amount_of_expansions = 0
 
     def run_simulation(self):
         node = self.root
-        # select a leaf node to expand. If the root node is a leaf node, use that as leaf
+        # traverse the tree by selecting edges with max Q+U
         leaf = self.select_child(node)
 
-        # expand the leaf node
+        # expand the leaf node. evaluate the state of the new node using the NN
         new_node = self.expand(leaf)
 
         # rollout the new node
@@ -37,15 +39,46 @@ class MCTS:
 
         self.amount_of_simulations += 1
 
+    def action_to_probability_index(action: str) -> int:
+        """
+        Map a uci action to a probability index
+        """
+        from_square = action[0:2]
+        to_square = action[2:4]
+        # TODO
+
+
     def select_child(self, node: Node) -> Node:
         logging.debug("Getting leaf node...")
         # find a leaf node
         while not node.is_leaf():
             logging.debug("Getting random child...")
-            # TODO: choose the action that maximizes Q+U
-            # Q = value of the next state
-            # U = function of P (prior prob)
-            # 	  and N (amount of times the action has been taken in current state)
+            # choose the action that maximizes Q+U
+            max_edge: Edge = max(node.edges, key=lambda edge: edge.Q + edge.U)
+            max_edge.N += 1
+            
+            # predict p and v
+            # TODO: make prediction from NN. For now, random values:
+            # v = [-1, 1]
+            v = random.uniform(-1, 1)
+            # p = values [0, 1] for all possible actions
+            p = np.array([random.random() for _ in range(config.OUTPUT_SHAPE[0])])
+            # TODO: map action to probability index
+
+
+            print(p, v)
+
+            # update the best edge
+            max_edge.W += v
+            max_edge.Q = max_edge.W / max_edge.N
+
+            # update all edges
+            for edge in node.edges:
+                # TODO: for every edge, update the prior using p.
+                pass 
+            
+            # get the child node with the highest Q+U
+            node = max_edge.output_node
 
             # TODO: for now, just select a random child
             # calculate new children for the current node
@@ -59,11 +92,11 @@ class MCTS:
         action = random.choice(leaf.get_unexplored_actions())
         # don't update the leaf node's state, just the child's state
         old_state = leaf.state.copy()
-        # make the move
+        # make the move. this changes leaf.state
         leaf.step(action)
 
         # create a new node with the new state
-        new_node: Node = leaf.add_child(Node(leaf.state.copy(), leaf, action))
+        new_node: Node = leaf.add_child(Node(state=leaf.state.copy()))
         leaf.state = old_state
         return new_node
 
@@ -76,18 +109,25 @@ class MCTS:
 
             # if amount of pieces on board is less than 8, consult tablebase
             if MCTS.get_piece_amount(node.state) < 8:
-                # TODO: tablebase
                 logging.debug("Less than 8 pieces on board")
                 # decide who wins by estimating the score for this node
-                self.estimate_winner(node)
+                # TODO: tablebase instead of estimation
+                winner = self.estimate_winner(node)
+                if node.state.turn == chess.WHITE:
+                    node.result = winner
+                else:
+                    node.result = -winner
                 break
 
             # if move amount is higher than 100, draw
             if node.state.fullmove_number > 10:
-                # TODO: make draw
                 logging.debug("Move amount is higher than 100")
                 # decide who wins by estimating the score for this node
-                self.estimate_winner(node)
+                winner = self.estimate_winner(node)
+                if node.state.turn == chess.WHITE:
+                    node.result = winner
+                else:
+                    node.result = -winner
                 break
         logging.debug("Rollout finished!")
         return node
@@ -109,15 +149,12 @@ class MCTS:
     def estimate_winner(self, node: Node) -> int:
         score = node.estimate_score()
         if np.abs(score) > 1:
-            # TODO: decide who wins
             if score > 0:
                 logging.debug("White wins")
-                score = 1
+                return 1
             else:
                 logging.debug("Black wins")
-                score = -1
+                return -1
         else:
-            # TODO: make draw
             logging.debug("Draw")
-            score = 0
-        return score
+            return 0

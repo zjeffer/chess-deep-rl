@@ -1,41 +1,36 @@
 import chess
 from chess import Move
 from collections.abc import Iterator
-
+from edge import Edge
 
 class Node:
-    def __init__(self, state: chess.Board, parent: "Node" = None, action: Move = None):
+    def __init__(self, state: chess.Board):
         """
         A node is a state inside the MCTS tree.
         """
         self.state = state
-        # the Node's parent. None if the node is the root node
-        self.parent = parent
-        # the move that led to this node
-        self.action = action
-        # the value of this node TODO: implement
-        self.propagated_value: float = 0.0
+        # the edges connected to this node
+        self.edges: list[Edge] = []
+        # result of this node. 1 = won, 0 = draw, -1 = lost, None = not done yet
+        self.result = None
 
         # the explored actions for this state
         self.explored_actions: list[Move] = []
-        # the node's children
-        self.children: list[Node] = []
-        # upper confidence bound
-        self.estimated_value: int = 1e6
 
     def __eq__(self, node: object) -> bool:
         """
         Check if two nodes are equal.
-                Two nodes are equal if the state is the same and it got there through the same action
+        Two nodes are equal if the state is the same and it got there through the same action
         """
         if isinstance(node, Node):
-            return self.state == node.state and self.action == node.action
+            # TODO: is this the correct way to compare boards?
+            return self.state == node.state and self.state.move_stack[-1] == node.state.move_stack[-1]
         else:
             return NotImplemented
 
     def get_unexplored_actions(self) -> list[Move]:
         """ 
-        Get all unexplored actions for the current state. Returns a generator.
+        Get all unexplored actions for the current state. Remove already explored actions
         """
         actions = list(self.state.generate_legal_moves())
         for a in self.explored_actions:
@@ -64,14 +59,16 @@ class Node:
         """
         Check if the current node is a leaf node.
         """
-        return not len(self.children)
+        return not len(self.edges)
 
     def add_child(self, child: "Node") -> "Node":
         """
         Add a child node to the current node.
         """
-        self.children.append(child)
-        return child
+        # TODO: change P 
+        edge = Edge(input_node=self, output_node=child, action=child.action, P=0)
+        self.edges.append(edge)
+        return edge
 
     def calculate_children(self) -> None:
         """
@@ -80,7 +77,7 @@ class Node:
         for action in self.get_unexplored_actions():
             state = self.state.copy()
             state.push(action)
-            self.add_child(Node(state=state, parent=self, action=action))
+            self.add_child(Node(state=state))
 
     def get_all_children(self) -> list["Node"]:
         """

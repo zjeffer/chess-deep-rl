@@ -1,16 +1,19 @@
 import chess
 import numpy as np
+from agent import Agent
 
 # class for chess environment
 
 
 class ChessEnv:
-	def __init__(self):
+	def __init__(self, white: Agent, black: Agent):
 		"""
 		Initialize the chess environment
 		"""
 		# the chessboard
 		self.board = chess.Board()
+		self.white = white
+		self.black = black
 
 	def reset(self):
 		"""
@@ -43,8 +46,6 @@ class ChessEnv:
 		"""
 		Convert board to a state that is interpretable by the model
 		"""
-		if len(board.move_stack) == 0:
-			return ChessEnv.board_to_booleans(board)
 
 		# put history of chess board into a list
 		boards = []

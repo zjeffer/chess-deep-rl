@@ -11,11 +11,9 @@ import graphviz
 from graphviz import Digraph
 
 class Game:
-	def __init__(self, env=ChessEnv()):
+	def __init__(self, env: ChessEnv=ChessEnv()):
 		self.env = env
-		self.white = Agent()
-		self.black = Agent()
-		self.mcts = MCTS()
+		self.mcts = MCTS(env)
 
 	def play(self):
 		pass
@@ -46,7 +44,10 @@ class Game:
 
 
 if __name__ == "__main__":
-	env = ChessEnv()
+	white = Agent()
+	black = Agent()
+	env = ChessEnv(white, black)
+
 	game = Game(env=env)
 	game.run_simulations(n=config.AMOUNT_OF_SIMULATIONS)
 	# game.plot_mcts()

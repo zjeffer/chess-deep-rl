@@ -1,9 +1,9 @@
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Activation, Dense, Dropout, Flatten, Conv2D, BatchNormalization, LeakyReLU, Input
-from tensorflow.keras import optimizers
-from tensorflow.keras.layers import add as add_layer
-from tensorflow.keras.models import Model
+from keras.models import Sequential
+from keras.layers import Activation, Dense, Dropout, Flatten, Conv2D, BatchNormalization, LeakyReLU, Input
+from keras import optimizers
+from keras.layers import add as add_layer
+from keras.models import Model
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 
 
@@ -39,7 +39,6 @@ class RLModelBuilder:
 			x = self.build_residual_layer(x)
 
 		model = Model(inputs=main_input, outputs=x)
-		return model
 
 		policy_head = self.build_policy_head()
 		value_head = self.build_value_head()
