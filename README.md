@@ -1,9 +1,21 @@
 # Chess engine using Deep Reinforcement learning
 
-1. Use MCTS to choose the next move (PUCT = Predictor + Upper Confidence Bound tree search)
-2. After a certain depth, use a neural network to evaluate the best moves found by MCTS
-3. Select the best move from the neural network
-4. Repeat steps 1-3 until the game is over
+To run one MCTS simulation:
+
+1. To traverse the tree, select the edge with max Q+U value
+	* Q = mean value of the state over all simulations in this search
+	* U = upper confidence bound
+	* Do this until a leaf node is reached
+2. Expand the leaf node. Use the neural network to select the best move. This will generate a new state
+	* If the new state is a terminal state, stop here
+	* If the new state is not terminal, keep expanding until we reach a terminal state (=rollout)
+	* N = 0, W = 0, Q = 0, P = p_a (probability for that action)
+3. Backpropagation: update the values from each node visited in step 2
+	* N = N + 1
+	* W = W + v
+	* Q = W / N
+
+
 
 To train the network, optimize the weights of the neural network by comparing the neural network's predictions to the actual game outcome.
 
@@ -33,6 +45,7 @@ To train the network, optimize the weights of the neural network by comparing th
 
 * https://towardsdatascience.com/can-deep-reinforcement-learning-solve-chess-b9f52855cd1e
 
+* https://www.nature.com/articles/nature24270/figures/2 From AlphaGo Zero paper: MCTS 
 
 * https://link.springer.com/chapter/10.1007/3-540-45579-5_18
 
