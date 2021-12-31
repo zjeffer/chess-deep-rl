@@ -6,9 +6,6 @@ from tqdm import tqdm
 
 import config
 
-# graphing mcts
-import graphviz
-from graphviz import Digraph
 
 class Game:
 	def __init__(self, env: ChessEnv=ChessEnv()):
