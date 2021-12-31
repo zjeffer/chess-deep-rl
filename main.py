@@ -32,15 +32,7 @@ class Game:
 
 
 	def plot_mcts(self):
-		# tree plotting
-		dot = Digraph(comment='Chess MCTS Tree')
-		print(f"Amount of nodes in tree: {len(self.mcts.root.get_all_children())}")
-		print(f"Plotting tree...")
-		for node in tqdm(self.mcts.root.get_all_children()):
-			dot.node(str(node.state.fen()), label="*")
-			for child in node.children:
-				dot.edge(str(node.state.fen()), str(child.state.fen()), label=str(child.action))
-		dot.save('mcts_tree.gv')
+		self.mcts.plot()
 
 
 if __name__ == "__main__":

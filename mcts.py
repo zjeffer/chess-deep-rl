@@ -9,6 +9,10 @@ from node import Node
 from edge import Edge
 import numpy as np
 import time
+import tqdm
+
+# graphing mcts
+from graphviz import Digraph
 
 import config
 
@@ -47,7 +51,6 @@ class MCTS:
         to_square = action[2:4]
         # TODO
 
-
     def select_child(self, node: Node) -> Node:
         logging.debug("Getting leaf node...")
         # find a leaf node
@@ -56,15 +59,15 @@ class MCTS:
             # choose the action that maximizes Q+U
             max_edge: Edge = max(node.edges, key=lambda edge: edge.Q + edge.U)
             max_edge.N += 1
-            
+
             # predict p and v
             # TODO: make prediction from NN. For now, random values:
             # v = [-1, 1]
             v = random.uniform(-1, 1)
             # p = values [0, 1] for all possible actions
-            p = np.array([random.random() for _ in range(config.OUTPUT_SHAPE[0])])
+            p = np.array([random.random()
+                         for _ in range(config.OUTPUT_SHAPE[0])])
             # TODO: map action to probability index
-
 
             print(p, v)
 
@@ -75,8 +78,8 @@ class MCTS:
             # update all edges
             for edge in node.edges:
                 # TODO: for every edge, update the prior using p.
-                pass 
-            
+                pass
+
             # get the child node with the highest Q+U
             node = max_edge.output_node
 
@@ -158,3 +161,16 @@ class MCTS:
         else:
             logging.debug("Draw")
             return 0
+
+    def plot_tree(self):
+        # tree plotting
+        # TODO: fix because i'm now using an Edge class
+        dot = Digraph(comment='Chess MCTS Tree')
+        print(f"# of nodes in tree: {len(self.root.get_all_children())}")
+        print(f"Plotting tree...")
+        for node in tqdm(self.root.get_all_children()):
+            dot.node(str(node.state.fen()), label="*")
+            for child in node.children:
+                dot.edge(str(node.state.fen()), str(
+                    child.state.fen()), label=str(child.action))
+        dot.save('mcts_tree.gv')
