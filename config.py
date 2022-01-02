@@ -9,9 +9,13 @@ MAX_DEPTH = 100
 n = 8  # board size
 t = 8  # amount of timesteps
 m = 2 * 6 + 1  # pieces for every player + the square for en passant
-# additional values: move counter, repitition counter, side to move, castling rights for every side and every player
+# additional values: repitition counter, side to move, castling rights for every side and every player
 l = 1 + 1 + 1 + (2*2)
-INPUT_SHAPE = (n, n, m*t+l)
+# TODO: according to the paper, m*t+l should be 119 (currently: 111)
+
+# INPUT_SHAPE = (n, n, m*t+l)
+# trying without previous moves first, TODO: try with t - 1 previous boards as well
+INPUT_SHAPE = (n, n, 20)
 
 # ============= NEURAL NETWORK OUTPUTS =============
 # the model has 2 outputs: policy and value
@@ -22,6 +26,21 @@ INPUT_SHAPE = (n, n, m*t+l)
 #       * 9 possible underpromotions
 #   total values: 8*8*(56+8+9) = 4672
 # ouput_shape[1] should be 1: a scalar value (v)
-OUTPUT_SHAPE = (8*8*(56+8+9), 1)
+# 73 planes for chess:
+_amount_of_planes = 56 + 8 + 9
+OUTPUT_SHAPE = (8*8*_amount_of_planes, 1)
 
+
+# ============= NEURAL NETWORK PARAMETERS =============
+# TODO: change if necessary. AZ used 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
+LEARNING_RATE = 0.001
+# filters for the convolutional layers
+CONVOLUTION_FILTERS = 256
+# amount of hidden residual layers
+# According to the AlphaGo Zero paper: 
+#    "For the larger run (40 block, 40 days), MCTS search parameters were re-optimised using the neural network trained in the smaller run (20 block, 3 days)."
+# ==> First train a small NN, then optimize longer with a larger NN.
 AMOUNT_OF_RESIDUAL_BLOCKS = 19
+
+# where to save the model
+MODEL_FOLDER = './models/'
