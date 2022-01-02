@@ -1,9 +1,8 @@
 from chess import Move
-from node import Node
 
 
 class Edge:
-    def __init__(self, input_node: Node, output_node: Node, action: Move, P: float):
+    def __init__(self, input_node: "Node", output_node: "Node", action: Move, P: float):
         self.input_node = input_node
         self.output_node = output_node
         self.action = action

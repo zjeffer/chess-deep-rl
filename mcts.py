@@ -27,6 +27,8 @@ class MCTS:
         self.amount_of_simulations = 0
         self.amount_of_expansions = 0
 
+        self.game_path: list[Node] = []
+
     def run_simulation(self):
         node = self.root
         # traverse the tree by selecting edges with max Q+U
@@ -45,7 +47,7 @@ class MCTS:
 
     def action_to_probability_index(action: str) -> int:
         """
-        Map a uci action to a probability index
+        Map a uci action to an index in the output vector.
         """
         from_square = action[0:2]
         to_square = action[2:4]
@@ -60,26 +62,6 @@ class MCTS:
             max_edge: Edge = max(node.edges, key=lambda edge: edge.Q + edge.U)
             max_edge.N += 1
 
-            # predict p and v
-            # TODO: make prediction from NN. For now, random values:
-            # v = [-1, 1]
-            v = random.uniform(-1, 1)
-            # p = values [0, 1] for all possible actions
-            p = np.array([random.random()
-                         for _ in range(config.OUTPUT_SHAPE[0])])
-            # TODO: map action to probability index
-
-            print(p, v)
-
-            # update the best edge
-            max_edge.W += v
-            max_edge.Q = max_edge.W / max_edge.N
-
-            # update all edges
-            for edge in node.edges:
-                # TODO: for every edge, update the prior using p.
-                pass
-
             # get the child node with the highest Q+U
             node = max_edge.output_node
 
@@ -90,11 +72,39 @@ class MCTS:
         return node
 
     def expand(self, leaf: Node) -> Node:
+        """
+        Expand the leaf node. Use a neural network to select the best move.
+        This will generate a new state
+        """
         logging.debug("Expanding...")
         self.amount_of_expansions += 1
-        action = random.choice(leaf.get_unexplored_actions())
         # don't update the leaf node's state, just the child's state
         old_state = leaf.state.copy()
+
+        # predict p and v
+        # TODO: make prediction from NN. For now, random values:
+        # p, v = model.predict(...)
+        # v = [-1, 1]
+        v = random.uniform(-1, 1)
+        # p = values [0, 1] for all possible actions
+        p = np.array([random.random() for _ in range(config.OUTPUT_SHAPE[0])])
+        # TODO: map actions to probabilities
+        
+        
+
+        print(p, v)
+
+        best_edge = None
+
+        # update the best edge
+        best_edge.W += v
+        best_edge.Q = best_edge.W / best_edge.N
+
+        # update all edges
+        for edge in leaf.edges:
+            # TODO: for every edge, update the prior using p.
+            pass
+
         # make the move. this changes leaf.state
         leaf.step(action)
 
@@ -109,6 +119,7 @@ class MCTS:
         while not node.is_game_over():
             # calculate children for the current node
             node = self.expand(node)
+            self.game_path.append(node)
 
             # if amount of pieces on board is less than 8, consult tablebase
             if MCTS.get_piece_amount(node.state) < 8:
@@ -135,9 +146,15 @@ class MCTS:
         logging.debug("Rollout finished!")
         return node
 
-    def backpropagate(self, end_node):
+    def backpropagate(self, end_node: Node, value: float):
         logging.debug("Backpropagation...")
         # TODO: implement
+
+        self.game_path.reverse()
+        for node in self.game_path:
+            node.N += 1
+            node.W += value
+            node.Q = node.W / node.N
 
         logging.debug(end_node.state)
         game = chess.pgn.Game.from_board(board=end_node.state)
