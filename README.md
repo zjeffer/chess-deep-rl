@@ -1,6 +1,8 @@
 # Chess engine using Deep Reinforcement learning
 
-To run one MCTS simulation:
+### Every move, run a high number amount of MCTS simulations:
+
+**To run one MCTS simulation:**
 
 1. To traverse the tree, select the edge with max Q+U value
 	* Q = mean value of the state over all simulations in this search
@@ -15,9 +17,20 @@ To run one MCTS simulation:
 	* W = W + v
 	* Q = W / N
 
+### After these simulations, the move can be chosen:
 
+* The move with greatest N (deterministically)
+* According to a distribution (stochastically): $\pi \sim N^{\frac{1}{T}}$, T = temperature control
 
-To train the network, optimize the weights of the neural network by comparing the neural network's predictions to the actual game outcome.
+### Training the network
+
+* Sample a mini-batch of positions from a high amount of games
+* Train the network on the mini-batch
+
+### Evaluate the network
+
+To know whether the new network is better than the previous one, let the two networks play
+for a high amount of games. Whoever wins the most games, is the best network.
 
 ## Useful sources
 
@@ -38,19 +51,11 @@ To train the network, optimize the weights of the neural network by comparing th
 
 * https://arxiv.org/abs/1712.01815 The AlphaZero paper
 * https://www.science.org/doi/10.1126/science.aar6404 Supplementary materials for the paper: more info
-* http://web.stanford.edu/~surag/posts/alphazero.html
-* https://www.sciencedirect.com/science/article/pii/S0925231221005245
-* https://chess.stackexchange.com/questions/19353/understanding-alphazero
-* https://chess.stackexchange.com/questions/19401/how-does-alphazero-learn-to-evaluate-a-position-it-has-never-seen
-
-* https://towardsdatascience.com/can-deep-reinforcement-learning-solve-chess-b9f52855cd1e
-
+* https://chess.stackexchange.com/questions/19353/understanding-alphazero How does AZ come to a decision?
+* https://chess.stackexchange.com/questions/19401/how-does-alphazero-learn-to-evaluate-a-position-it-has-never-seen Never-seen positions
 * https://www.nature.com/articles/nature24270/figures/2 From AlphaGo Zero paper: MCTS 
-
-* https://link.springer.com/chapter/10.1007/3-540-45579-5_18
-
-* https://joshvarty.github.io/AlphaZero/ and https://github.com/JoshVarty/AlphaZeroSimple
-* https://chess.stackexchange.com/a/37477 Explanation for input of neural network
+* https://joshvarty.github.io/AlphaZero/ and https://github.com/JoshVarty/AlphaZeroSimple AZ on simple Connect2 environment
+* https://chess.stackexchange.com/a/37477 Explanation for input and output formats of neural network 
 
 ### Diagrams
 
@@ -62,6 +67,11 @@ To train the network, optimize the weights of the neural network by comparing th
 * https://towardsdatascience.com/alphazero-a-novel-reinforcement-learning-algorithm-deployed-in-javascript-56018503ad18 More info about the algorithm
 * https://medium.com/applied-data-science/how-to-build-your-own-alphazero-ai-using-python-and-keras-7f664945c188
 * https://medium.com/applied-data-science/how-to-build-your-own-muzero-in-python-f77d5718061a
+* http://web.stanford.edu/~surag/posts/alphazero.html Simple Alpha Zero tutorial
+* https://towardsdatascience.com/alphazero-implementation-and-tutorial-f4324d65fdfc AlphaGo Zero using custom TensorFlow operations and a custom Python C module 
+	* Updated article: https://medium.com/analytics-vidhya/how-i-trained-a-self-supervised-neural-network-to-beat-gnugo-on-small-7x7-boards-6b5b418895b7
+	* https://github.com/cody2007/alpha_go_zero_implementation The Github repo associated with this tutorial
+
 
 
 ## Interesting videos
