@@ -1,10 +1,12 @@
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Activation, Dense, Dropout, Flatten, Conv2D, BatchNormalization, LeakyReLU, Input
-from keras import optimizers
+from tensorflow.keras.optimizers import Adam
 from keras.layers import add as add_layer
 from keras.models import Model
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
+
+import config
 
 
 class RLModelBuilder:
@@ -12,7 +14,7 @@ class RLModelBuilder:
 	This class builds the neural network architecture according to the AlphaGo paper.
 	"""
 
-	def __init__(self, input_shape: tuple, output_shape: tuple, nr_hidden_layers: int = 0):
+	def __init__(self, input_shape: tuple, output_shape: tuple):
 		""" 
 		A neural network f that takes as input the raw board presentation s of the position and its history. 
 		It outputs move probabilities p and a value v:
@@ -24,7 +26,14 @@ class RLModelBuilder:
 		# define class variables
 		self.input_shape = input_shape
 		self.output_shape = output_shape
-		self.nr_hidden_layers = nr_hidden_layers
+		self.nr_hidden_layers = config.AMOUNT_OF_RESIDUAL_BLOCKS
+		self.convolution_filters = config.CONVOLUTION_FILTERS
+
+		# tensorflow: gpu memory growth
+		gpus = tf.config.experimental.list_physical_devices('GPU')
+		[tf.config.experimental.set_memory_growth(gpu, True) for gpu in gpus if gpus]
+	
+
 
 	def build_model(self) -> Model:
 		"""
@@ -52,7 +61,7 @@ class RLModelBuilder:
 				'policy_head': 'categorical_crossentropy',
 				'value_head': 'mean_squared_error'
 			},
-			optimizer=optimizers.Adam(lr=0.001),
+			optimizer=Adam(learning_rate=config.LEARNING_RATE),
 			loss_weights={
 				'policy_head': 0.5,
 				'value_head': 0.5
@@ -67,10 +76,10 @@ class RLModelBuilder:
 		"""
 
 		# TODO: change parameters for these layers (data_format, etc)
-		layer = Conv2D(filters=256, kernel_size=(3, 3), strides=(
+		layer = Conv2D(filters=self.convolution_filters, kernel_size=(3, 3), strides=(
 			1, 1), padding='same', data_format='channels_first', use_bias=False)(input_layer)
 		layer = BatchNormalization(axis=1)(layer)
-		layer = LeakyReLU()(layer)
+		layer = Activation('relu')(layer)
 		return (layer)
 
 	def build_residual_layer(self, input_layer) -> KerasTensor:
@@ -80,13 +89,13 @@ class RLModelBuilder:
 		# first convolutional layer
 		layer = self.build_convolutional_layer(input_layer)
 		# second convolutional layer with skip connection
-		layer = Conv2D(filters=256, kernel_size=(3, 3), strides=(
+		layer = Conv2D(filters=self.convolution_filters, kernel_size=(3, 3), strides=(
 			1, 1), padding='same', data_format='channels_first', use_bias=False)(layer)
 		layer = BatchNormalization(axis=1)(layer)
 		# skip connection
 		layer = add_layer([layer, input_layer])
 		# activation function
-		layer = LeakyReLU()(layer)
+		layer = Activation('relu')(layer)
 		return (layer)
 
 	def build_policy_head(self) -> Model:
@@ -94,12 +103,7 @@ class RLModelBuilder:
 		Builds the policy head of the neural network
 		"""
 		model = Sequential()
-		model.add(Conv2D(256, kernel_size=(1, 1), strides=(
-			1, 1), input_shape=self.input_shape, padding='same', data_format='channels_first'))
-		model.add(BatchNormalization(axis=1))
-		model.add(Activation('relu'))
-		# according to alphazero paper: 73 filters for chess
-		model.add(Conv2D(73, kernel_size=(1, 1)))
+		model.add(Conv2D(2, kernel_size=(1, 1), strides=(1, 1), input_shape=(self.convolution_filters, self.input_shape[1], self.input_shape[2]), padding='same', data_format='channels_first'))
 		model.add(BatchNormalization(axis=1))
 		model.add(Activation('relu'))
 		model.add(Flatten())
@@ -112,14 +116,13 @@ class RLModelBuilder:
 		"""
 		model = Sequential()
 		model.add(Conv2D(1, kernel_size=(1, 1), strides=(
-			1, 1), input_shape=self.input_shape, padding='same', data_format='channels_first'))
+			1, 1), input_shape=(self.convolution_filters, self.input_shape[1], self.input_shape[2]), padding='same', data_format='channels_first'))
 		model.add(BatchNormalization(axis=1))
-		model.add(LeakyReLU())
+		model.add(Activation('relu'))
 		model.add(Flatten())
-		model.add(Dense(20))
-		model.add(LeakyReLU())
+		model.add(Dense(256))	
+		model.add(Activation('relu'))
 		# output shape == 1, because we want 1 value: the estimated outcome from the position
 		# tanh activation function maps the output to [-1, 1]
-		model.add(Dense(self.output_shape[1],
-				  activation='tanh', name='value_head'))
+		model.add(Dense(self.output_shape[1], activation='tanh', name='value_head'))
 		return model
