@@ -3,6 +3,7 @@ from chess import Move
 from collections.abc import Iterator
 from edge import Edge
 
+
 class Node:
     def __init__(self, state: chess.Board):
         """
@@ -65,8 +66,9 @@ class Node:
         """
         Add a child node to the current node.
         """
-        # TODO: change P 
-        edge = Edge(input_node=self, output_node=child, action=child.action, P=0)
+        # TODO: change P
+        edge = Edge(input_node=self, output_node=child,
+                    action=child.action, P=0)
         self.edges.append(edge)
         return edge
 

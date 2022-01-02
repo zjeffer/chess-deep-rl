@@ -89,8 +89,6 @@ class MCTS:
         # p = values [0, 1] for all possible actions
         p = np.array([random.random() for _ in range(config.OUTPUT_SHAPE[0])])
         # TODO: map actions to probabilities
-        
-        
 
         print(p, v)
 

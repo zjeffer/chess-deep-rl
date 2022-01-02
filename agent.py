@@ -15,7 +15,7 @@ class Agent:
         self.memory = []
 
     def build_model(self):
-         # create the model
+        # create the model
         model_builder = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE)
         self.model: Model = model_builder.build_model()
 
