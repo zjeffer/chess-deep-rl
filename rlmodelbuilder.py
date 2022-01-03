@@ -115,8 +115,10 @@ class RLModelBuilder:
         Builds the value head of the neural network
         """
         model = Sequential()
-        model.add(Conv2D(1, kernel_size=(1, 1), strides=(
-            1, 1), input_shape=(self.convolution_filters, self.input_shape[1], self.input_shape[2]), padding='same', data_format='channels_first'))
+        model.add(Conv2D(1, kernel_size=(1, 1), strides=(1, 1),
+                         input_shape=(self.convolution_filters,
+                                      self.input_shape[1], self.input_shape[2]),
+                         padding='same', data_format='channels_first'))
         model.add(BatchNormalization(axis=1))
         model.add(Activation('relu'))
         model.add(Flatten())
