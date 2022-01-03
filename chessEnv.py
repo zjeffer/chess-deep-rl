@@ -6,7 +6,7 @@ from agent import Agent
 import time
 import logging
 logging.basicConfig(level=logging.INFO)
-# class for chess environment
+import config
 
 
 class ChessEnv:
@@ -26,7 +26,7 @@ class ChessEnv:
         self.board = chess.Board()
 
     @staticmethod
-    def board_to_state(board: chess.Board) -> np.ndarray((8, 8, 20)):
+    def board_to_state(board: chess.Board) -> np.ndarray(config.INPUT_SHAPE):
         """
         Convert board to a state that is interpretable by the model
         """
@@ -91,7 +91,10 @@ class ChessEnv:
         logging.debug(
             f"*** En passant: {(time.time() - start_time):.6f} seconds ***")
 
-        return [is_white_turn, is_black_turn, *castling, counter, *arrays, en_passant]
+        r = np.array([is_white_turn, is_black_turn, *castling, counter, *arrays, en_passant])
+        print("===============")
+        r = r.reshape(1, 8, 8, 20)
+        return r
 
     @staticmethod
     def print_board(board: list):
