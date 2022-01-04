@@ -1,5 +1,6 @@
 # implement the Monte Carlo Tree Search algorithm
 
+from xml.etree.ElementTree import tostring
 import chess
 import chess.pgn
 import random
@@ -15,6 +16,8 @@ import tqdm
 from graphviz import Digraph
 
 import config
+# output vector mapping
+from mapper import KnightMove, Mapping, QueenDirection, UnderPromotion
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -45,13 +48,66 @@ class MCTS:
 
         self.amount_of_simulations += 1
 
-    def action_to_probability_index(action: str) -> int:
+    def probabilities_to_actions(self, probabilities: list, board: chess.Board) -> dict:
         """
-        Map a uci action to an index in the output vector.
+        Map the output vector of 4672 probabilities to moves
+
+        The output vector is a list of probabilities for every move
+        * 4672 probabilities = 73*64 => 73 planes of 8x8
+
+        The squares in these 8x8 planes indicate the square where the piece is.
+
+        The plane itself indicates the type of move:
+            - first 56 planes: queen moves (length of 7 squares * 8 directions)
+            - next 8 planes: knight moves (8 directions)
+            - final 9 planes: underpromotions (left diagonal, right diagonal, forward) * (three possible pieces (knight, bishop, rook))
         """
-        from_square = action[0:2]
-        to_square = action[2:4]
-        # TODO
+        queen_moves, knight_moves, underpromotions = np.split(
+            probabilities, [config.queen_planes*64, config.queen_planes*64+config.knight_planes*64])
+        print(f"Amount of queen moves: {len(queen_moves)}")
+        print(f"Amount of knight moves: {len(knight_moves)}")
+        print(f"Amount of underpromotions: {len(underpromotions)}")
+
+        queen_moves = np.reshape(queen_moves, (config.queen_planes, 64))
+        knight_moves = np.reshape(knight_moves, (config.knight_planes, 64))
+        underpromotions = np.reshape(
+            underpromotions, (config.underpromotion_planes, 64))
+
+        # only get valid moves
+        valid_moves = list(self.env.board.generate_legal_moves())
+        print(f"Amount of valid moves: {len(valid_moves)}")
+
+        mask = np.asarray([np.asarray([0 for _ in range(64)]).reshape(
+            8, 8) for _ in range(config.amount_of_planes)])
+        print(f"Mask shape: {mask.shape}")
+        for move in valid_moves:
+            print(move)
+            from_square = move.from_square
+            to_square = move.to_square
+            # print(f"From {from_square} to: {to_square}, diff: {from_square - to_square}")
+
+            plane_index: int = None
+            piece = board.piece_at(from_square)
+            direction = None
+
+            if move.promotion and move.promotion != chess.QUEEN:
+                piece_type, direction = Mapping.get_underpromotion_move(
+                    move.promotion, from_square, to_square)
+                plane_index = Mapping.mapper[piece_type][1 - direction]
+            else:
+                # find the correct plane based on from_square and move_square
+                if piece.piece_type == chess.KNIGHT:
+                    # get direction
+                    direction = Mapping.get_knight_move(from_square, to_square)
+                    plane_index = Mapping.mapper[direction]
+                else:
+                    # get direction of queen-type move
+                    direction, distance = Mapping.get_queenlike_move(
+                        from_square, to_square)
+                    plane_index = Mapping.mapper[direction][np.abs(distance)-1]
+            # based on the plane index, set the from square to true
+            print(f"Plane index: {plane_index}")
+            # mask invalid moves
 
     def select_child(self, node: Node) -> Node:
         logging.debug("Getting leaf node...")
@@ -82,15 +138,32 @@ class MCTS:
         old_state = leaf.state.copy()
 
         # predict p and v
-        # TODO: make prediction from NN. For now, random values:
-        # p, v = model.predict(...)
+        # p = array of probabilities: [0, 1] for every move (including invalid moves)
         # v = [-1, 1]
-        v = random.uniform(-1, 1)
-        # p = values [0, 1] for all possible actions
-        p = np.array([random.random() for _ in range(config.OUTPUT_SHAPE[0])])
-        # TODO: map actions to probabilities
+        if old_state.turn:
+            p, v = self.env.white.model.predict(
+                ChessEnv.board_to_state(old_state))
+        else:
+            p, v = self.env.black.model.predict(
+                ChessEnv.board_to_state(old_state))
+        p, v = p[0], v[0]
 
         print(p, v)
+        print(np.mean(p)*255)
+        print(f"Amount of probabilities: {len(p)}")
+        print(f"Value of state: {v}")
+
+        # test: show output with planes
+        # import utils
+        # p_output = p.reshape(73, 8, 8)
+        # utils.save_output_state_to_imgs(p_output, "tests/output_planes")
+
+        # TODO: map actions to probabilities
+        start_time = time.time()
+        p = self.probabilities_to_actions(p, old_state)
+        print(f"Time to map probabilities: {time.time() - start_time}")
+
+        exit(1)
 
         best_edge = None
 

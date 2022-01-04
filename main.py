@@ -36,15 +36,16 @@ class Game:
 
 if __name__ == "__main__":
 
-    # run tests
+    # # run tests
     # testing = Test()
     # testing.run_tests(n=500)
 
     white = Agent()
     black = Agent()
     env = ChessEnv(white, black)
+    env.board.set_fen("r4b2/8/6p1/2p2p1p/2P2B1P/P1kPR1N1/7K/R7 w - - 3 42")
 
     game = Game(env=env)
-    white.model.summary()
+    # white.model.summary()
     game.run_simulations(n=config.AMOUNT_OF_SIMULATIONS)
     # game.plot_mcts()

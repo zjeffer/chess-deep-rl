@@ -27,8 +27,12 @@ INPUT_SHAPE = (n, n, 20)
 #   total values: 8*8*(56+8+9) = 4672
 # ouput_shape[1] should be 1: a scalar value (v)
 # 73 planes for chess:
-_amount_of_planes = 56 + 8 + 9
-OUTPUT_SHAPE = (8*8*_amount_of_planes, 1)
+queen_planes = 56
+knight_planes = 8
+underpromotion_planes = 9
+amount_of_planes = queen_planes + knight_planes + underpromotion_planes
+# the output shape for the vector
+OUTPUT_SHAPE = (8*8*amount_of_planes, 1)
 
 
 # ============= NEURAL NETWORK PARAMETERS =============
