@@ -50,3 +50,8 @@ AMOUNT_OF_RESIDUAL_BLOCKS = 19
 
 # where to save the model
 MODEL_FOLDER = './models/'
+
+# ============= TRAINING PARAMETERS =============
+BATCH_SIZE = 512
+EPOCHS = 1
+
