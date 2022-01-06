@@ -5,6 +5,12 @@ from tensorflow.keras.optimizers import Adam
 from keras.layers import add as add_layer
 from keras.models import Model
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
+from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
+from tensorflow.python.types.core import ConcreteFunction
+
+# disable eager execution
+from tensorflow.python.framework.ops import disable_eager_execution
+
 
 import config
 
@@ -23,6 +29,8 @@ class RLModelBuilder:
         * p represents the probability of selecting each move.
         * v represents the probability of the current player winning the game in position s.
         """
+        # disable_eager_execution()
+
         # define class variables
         self.input_shape = input_shape
         self.output_shape = output_shape
@@ -101,20 +109,21 @@ class RLModelBuilder:
         """
         Builds the policy head of the neural network
         """
-        model = Sequential()
+        model = Sequential(name='policy_head')
         model.add(Conv2D(2, kernel_size=(1, 1), strides=(1, 1), input_shape=(self.convolution_filters,
                   self.input_shape[1], self.input_shape[2]), padding='same', data_format='channels_first'))
         model.add(BatchNormalization(axis=1))
         model.add(Activation('relu'))
         model.add(Flatten())
-        model.add(Dense(self.output_shape[0], name='policy_head'))
+        # TODO: which activation to use for probabilities?
+        model.add(Dense(self.output_shape[0], activation="sigmoid", name='policy_head'))
         return model
 
     def build_value_head(self) -> Model:
         """
         Builds the value head of the neural network
         """
-        model = Sequential()
+        model = Sequential(name='value_head')
         model.add(Conv2D(1, kernel_size=(1, 1), strides=(1, 1),
                          input_shape=(self.convolution_filters,
                                       self.input_shape[1], self.input_shape[2]),
@@ -129,3 +138,21 @@ class RLModelBuilder:
         model.add(Dense(self.output_shape[1],
                   activation='tanh', name='value_head'))
         return model
+
+    @staticmethod
+    def convert_keras_to_tensorflow_model(model: Model) -> ConcreteFunction:
+        """
+        Converts a keras model to a tensorflow model and returns the Concrete Function
+        """
+        tf_model = tf.function(lambda x: model(x))
+        tf_model = tf_model.get_concrete_function(x = tf.TensorSpec(model.inputs[0].shape, model.inputs[0].dtype))
+
+        # TODO: as graph or not?
+        frozen_func = convert_variables_to_constants_v2(tf_model)
+        frozen_func.graph.as_graph_def()
+
+        print(f"Frozen model inputs: {frozen_func.inputs}")
+        print(f"Frozen model outputs: {frozen_func.outputs}")
+
+        return frozen_func
+

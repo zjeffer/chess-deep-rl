@@ -26,7 +26,7 @@ class ChessEnv:
         self.board = chess.Board()
 
     @staticmethod
-    def board_to_state(board: chess.Board) -> np.ndarray(config.INPUT_SHAPE):
+    def state_to_input(board: chess.Board) -> np.ndarray(config.INPUT_SHAPE):
         """
         Convert board to a state that is interpretable by the model
         """
@@ -92,18 +92,14 @@ class ChessEnv:
             f"*** En passant: {(time.time() - start_time):.6f} seconds ***")
 
         r = np.array([is_white_turn, is_black_turn, *castling, counter, *arrays, en_passant])
-        print("===============")
         r = r.reshape(1, 8, 8, 20)
         return r
 
-    @staticmethod
-    def print_board(board: list):
+    def __str__(self):
         """
         Print the board
         """
-        for row in board:
-            for col in row:
-                print(col)
+        return str(self.board)
 
     def move(self, action: chess.Move):
         """ 

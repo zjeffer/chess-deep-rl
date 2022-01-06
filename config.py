@@ -1,8 +1,10 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-AMOUNT_OF_SIMULATIONS = 200
+AMOUNT_OF_SIMULATIONS = 20
 MAX_DEPTH = 100
+# confidence factor for the upper confidence bound calculation
+CONFIDENCE_FACTOR = 2
 
 # ============= NEURAL NETWORK INPUTS =============
 # 2 players, 6 pieces, 8x8 board

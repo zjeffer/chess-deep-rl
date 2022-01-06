@@ -18,6 +18,8 @@ class Node:
         # the explored actions for this state
         self.explored_actions: list[Move] = []
 
+        self.value = 0
+
     def __eq__(self, node: object) -> bool:
         """
         Check if two nodes are equal.
@@ -62,13 +64,13 @@ class Node:
         """
         return not len(self.edges)
 
-    def add_child(self, child: "Node") -> "Node":
+    def add_child(self, child: "Node", action: Move, prior: float) -> Edge:
         """
         Add a child node to the current node.
+
+        Returns the created edge between the nodes
         """
-        # TODO: change P
-        edge = Edge(input_node=self, output_node=child,
-                    action=child.action, P=0)
+        edge = Edge(input_node=self, output_node=child, action=action, prior=prior)
         self.edges.append(edge)
         return edge
 
