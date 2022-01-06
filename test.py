@@ -1,4 +1,3 @@
-import time
 from agent import Agent
 from chessEnv import ChessEnv
 import utils
@@ -60,6 +59,7 @@ class Test:
     
 if __name__ == "__main__":
     test = Test()
+    test.run_state_to_input_test(n=20)
     test.test_mask1()
     test.test_mask2()
     test.test_mask3()
