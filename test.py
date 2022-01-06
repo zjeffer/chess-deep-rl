@@ -6,14 +6,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 
-def timer_function(func):
-    def wrap_func(*args, **kwargs):
-        t1 = time.time()
-        result = func(*args, **kwargs)
-        t2 = time.time()
-        print(f'Function {func.__name__!r} executed in {(t2-t1):.4f}s')
-        return result
-    return wrap_func
+
 
 
 class Test:
@@ -26,7 +19,7 @@ class Test:
         black = Agent(build_model=False)
         self.env = ChessEnv(white, black)
 
-    @timer_function
+    @utils.timer_function
     def run_tests(self, n: int = 1):
 
         for _ in range(n):
@@ -41,7 +34,7 @@ class Test:
             self.env.board.push_san("d5")
 
             # test input_state
-            input_state = self.env.board_to_state(self.env.board)
+            input_state = self.env.state_to_input(self.env.board)
 
         # names = ['white_turn', 'black_turn',
         # 	'castling_king_white', 'castling_king_black', 'castling_queen_white', 'castling_queen_black',

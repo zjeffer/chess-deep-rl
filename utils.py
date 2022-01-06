@@ -38,21 +38,30 @@ def save_input_state_to_imgs(input_state: np.ndarray, path: str, names: list = N
         f"*** Saving to images: {(time.time() - start_time):.6f} seconds ***")
 
 
-def save_output_state_to_imgs(output_state: np.ndarray, path: str):
+def save_output_state_to_imgs(output_state: np.ndarray, path: str, name: str = "full"):
     """
     Save the output state to images
     """
     start_time = time.time()
     # full image of all states
-    # convert booleans to integers
     # pad input_state with grey values
-    output_state = np.pad(output_state.astype(int)*255, ((0, 0), (1, 1), (1, 1)), 'constant', constant_values=128)
+    output_state = np.pad(output_state.astype(float)*255, ((0, 0), (1, 1), (1, 1)), 'constant', constant_values=128)
     full_array = np.concatenate(output_state, axis=1)
     # more padding
     full_array = np.pad(full_array, ((4, 4), (5, 5)), 'constant', constant_values=128)
     img = Image.fromarray(full_array.astype(np.uint8))
     if img.mode != 'RGB':
         img = img.convert('RGB')
-    img.save(f"{path}/full.png")
+    img.save(f"{path}/{name}.png")
     print(
         f"*** Saving to images: {(time.time() - start_time):.6f} seconds ***")
+
+# timer function decorator
+def timer_function(func):
+    def wrap_func(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'Function {func.__name__!r} executed in {(t2-t1):.4f}s')
+        return result
+    return wrap_func
