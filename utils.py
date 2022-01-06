@@ -1,8 +1,11 @@
+from typing import Iterator
+from chess import Move
 import numpy as np
 from PIL import Image
 import time
 
-from numpy.core.numeric import full
+import threading
+import queue
 
 
 def save_input_state_to_imgs(input_state: np.ndarray, path: str, names: list = None, only_full: bool = False):
@@ -65,3 +68,24 @@ def timer_function(func):
         print(f'Function {func.__name__!r} executed in {(t2-t1):.4f}s')
         return result
     return wrap_func
+
+class Worker(threading.Thread):
+    def __init__(self, moves: Iterator[Move], *args, **kwargs):
+        self.moves = moves
+        super(Worker, self).__init__(*args, **kwargs)
+    
+    def run(self):
+        while True:
+            try: 
+                move = next(self.moves)
+            except StopIteration:
+                print("End of moves")
+                return
+            return move
+
+# q = queue.Queue()
+# for move in [1, 2, 3, 4]:
+#     q.put_nowait(move)
+# for _ in range(20):
+#     Worker(q).start()
+# q.join()

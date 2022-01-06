@@ -1,4 +1,5 @@
 # implement the Monte Carlo Tree Search algorithm
+from typing import Iterator
 import chess
 import chess.pgn
 from chessEnv import ChessEnv
@@ -8,6 +9,7 @@ import numpy as np
 import time
 import tqdm
 import utils
+import threading
 
 # graphing mcts
 from graphviz import Digraph
@@ -31,8 +33,8 @@ class MCTS:
         self.amount_of_expansions = 0
 
         self.game_path: list[Edge] = []
+        self.cur_board: chess.Board = None
 
-    @utils.timer_function
     def run_simulation(self):
         self.game_path = []
         self.amount_of_expansions = 0
@@ -49,6 +51,38 @@ class MCTS:
         self.amount_of_simulations += 1
         return end_node
 
+    def filter_valid_move(self, move) -> None:
+        logging.debug("Filtering valid moves...")
+        from_square = move.from_square
+        to_square = move.to_square
+
+        plane_index: int = None
+        piece = self.cur_board.piece_at(from_square)
+        direction = None
+
+        if piece is None:
+            raise Exception(f"No piece at {from_square}")
+
+        if move.promotion and move.promotion != chess.QUEEN:
+            piece_type, direction = Mapping.get_underpromotion_move(
+                move.promotion, from_square, to_square)
+            plane_index = Mapping.mapper[piece_type][1 - direction]
+        else:
+            # find the correct plane based on from_square and move_square
+            if piece.piece_type == chess.KNIGHT:
+                # get direction
+                direction = Mapping.get_knight_move(from_square, to_square)
+                plane_index = Mapping.mapper[direction]
+            else:
+                # get direction of queen-type move
+                direction, distance = Mapping.get_queenlike_move(
+                    from_square, to_square)
+                plane_index = Mapping.mapper[direction][np.abs(distance)-1]
+        # create a mask with only valid moves
+        row = from_square % 8
+        col = 7 - (from_square // 8)
+        self.outputs.append((move, plane_index, row, col))
+
     def probabilities_to_actions(self, probabilities: list, board: chess.Board) -> dict:
         """
         Map the output vector of 4672 probabilities to moves
@@ -63,46 +97,31 @@ class MCTS:
             - next 8 planes: knight moves (8 directions)
             - final 9 planes: underpromotions (left diagonal, right diagonal, forward) * (three possible pieces (knight, bishop, rook))
         """
-        probabilities = probabilities.reshape(73, 8, 8)
+        probabilities = probabilities.reshape(config.amount_of_planes, 8, 8)
+        mask = np.zeros(64*config.amount_of_planes).reshape(config.amount_of_planes, 8, 8)
+        logging.debug(f"Mask shape: {mask.shape}")
 
-        actions = {}
+        actions = {} 
+        start_time = time.time()
 
         # only get valid moves
-        valid_moves = list(board.generate_legal_moves())
-        logging.debug(f"Amount of valid moves: {len(valid_moves)}")
-
-        mask = np.asarray([np.asarray([0 for _ in range(64)]).reshape(
-            8, 8) for _ in range(config.amount_of_planes)])
-        logging.debug(f"Mask shape: {mask.shape}")
-        for move in valid_moves:
-            from_square = move.from_square
-            to_square = move.to_square
-
-            plane_index: int = None
-            piece = board.piece_at(from_square)
-            direction = None
-
-            if piece is None:
-                raise Exception(f"No piece at {from_square}")
-
-            if move.promotion and move.promotion != chess.QUEEN:
-                piece_type, direction = Mapping.get_underpromotion_move(
-                    move.promotion, from_square, to_square)
-                plane_index = Mapping.mapper[piece_type][1 - direction]
-            else:
-                # find the correct plane based on from_square and move_square
-                if piece.piece_type == chess.KNIGHT:
-                    # get direction
-                    direction = Mapping.get_knight_move(from_square, to_square)
-                    plane_index = Mapping.mapper[direction]
-                else:
-                    # get direction of queen-type move
-                    direction, distance = Mapping.get_queenlike_move(
-                        from_square, to_square)
-                    plane_index = Mapping.mapper[direction][np.abs(distance)-1]
-            # create a mask with only valid moves
-            row = from_square % 8
-            col = 7 - (from_square // 8)
+        self.cur_board = board
+        valid_moves = self.cur_board.generate_legal_moves()
+        self.outputs = []
+        threads = []
+        while True:
+            try:
+                move = next(valid_moves)
+            except StopIteration:
+                break
+            thread = threading.Thread(target=self.filter_valid_move, args=(move,))
+            threads.append(thread)
+        
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        for move, plane_index, col, row in self.outputs:
             mask[plane_index][col][row] = 1
             actions[move] = probabilities[plane_index][col][row]
 
@@ -113,9 +132,6 @@ class MCTS:
         probabilities = np.multiply(probabilities, mask)
 
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "filtered")
-
-        # probabilities to dictionary with actions
-
         return actions
 
     def select_child(self, node: Node) -> Node:
@@ -139,56 +155,53 @@ class MCTS:
         """
         logging.debug("Expanding...")
 
-        # print(f"{self.amount_of_expansions} expansions, move_stack length: {len(leaf.state.move_stack)}")
-        self.amount_of_expansions += 1
-        # don't update the leaf node's state, just the child's state
-        state = leaf.state.copy()
+        while self.amount_of_expansions < 100:
+            # print(f"{self.amount_of_expansions} expansions, move_stack length: {len(leaf.state.move_stack)}")
+            self.amount_of_expansions += 1
+            # don't update the leaf node's state, just the child's state
+            state = leaf.state.copy()
 
-        # predict p and v
-        # p = array of probabilities: [0, 1] for every move (including invalid moves)
-        # v = [-1, 1]
-        start_time = time.time()
-        if state.turn:
-            p, v = self.env.black.predict(ChessEnv.state_to_input(state))
-        else:
-            p, v = self.env.black.predict(ChessEnv.state_to_input(state))
-        p, v = p[0], v[0]
-        print(f"Prediction time: {time.time() - start_time}")
+            # predict p and v
+            # p = array of probabilities: [0, 1] for every move (including invalid moves)
+            # v = [-1, 1]
+            start_time = time.time()
+            if state.turn:
+                p, v = self.env.black.predict(ChessEnv.state_to_input(state))
+            else:
+                p, v = self.env.black.predict(ChessEnv.state_to_input(state))
+            p, v = p[0], v[0][0]
+            logging.debug(f"Prediction time: {time.time() - start_time}")
 
-        logging.debug(f"Model predictions: {p}, {v}")
-        logging.debug(f"Value of state: {v}")
+            logging.debug(f"Model predictions: {p}")
+            logging.debug(f"Value of state: {v}")
+            
+            actions = self.probabilities_to_actions(p, state)
 
-        
-        actions = self.probabilities_to_actions(p, state)
+            if not len(actions):
+                logging.debug("No valid moves, stopping expansion")
+                return leaf
 
-        if not len(actions):
-            print("End of recursion")
-            return leaf
-        logging.debug(len(actions))
+            # get action with highest probability
+            max_action = max(actions, key=lambda action: actions[action])
+            logging.debug(f"Best action: {max_action}")
 
-        # get action with highest probability
-        max_action = max(actions, key=lambda action: actions[action])
+            # make the move. this changes leaf.state
+            leaf.step(max_action)
 
-        # make the move. this changes leaf.state
-        leaf.step(max_action)
-
-        # create new node
-        new_node = Node(state=leaf.state.copy())
-        new_node.value = v
-        # set the state back to the old one (undo the move)
-        leaf.state = state
-        # create the edge between this node and the new node
-        edge = leaf.add_child(new_node, max_action, actions[max_action])
-        # add the edge to the tree
-        self.game_path.append(edge)
-        # update the value of the new leaf node
-        
-
-        # recursion: expand the new node
-        if self.amount_of_expansions >= 50:
-            new_node.result = 0
-            return new_node
-        return self.expand(new_node)
+            # create new node
+            new_node = Node(state=leaf.state.copy())
+            new_node.value = v
+            # set the state back to the old one (undo the move)
+            leaf.state = state
+            # create the edge between this node and the new node
+            edge = leaf.add_child(new_node, max_action, actions[max_action])
+            # add the edge to the tree
+            self.game_path.append(edge)
+            
+            # new node is now leaf node
+            leaf = new_node
+            
+        return leaf
 
     def backpropagate(self, end_node: Node, value: float):
         logging.debug("Backpropagation...")
@@ -199,9 +212,8 @@ class MCTS:
             edge.N += 1
             edge.W += value
             edge.Q = edge.W / edge.N
-            print(edge)
 
-        logging.debug("Backpropagation finished in " + str(time.time() - start_time) + " seconds")
+        logging.debug(f"Backpropagation finished in {time.time() - start_time} seconds")
         return end_node
 
     @staticmethod

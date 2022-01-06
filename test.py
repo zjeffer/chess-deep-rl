@@ -4,7 +4,7 @@ from chessEnv import ChessEnv
 import utils
 import logging
 logging.basicConfig(level=logging.INFO)
-
+import numpy as np
 
 
 
@@ -20,8 +20,7 @@ class Test:
         self.env = ChessEnv(white, black)
 
     @utils.timer_function
-    def run_tests(self, n: int = 1):
-
+    def run_state_to_input_test(self, n: int = 1):
         for _ in range(n):
 
             self.reset()
@@ -43,3 +42,24 @@ class Test:
         # 	'black_pawns', 'black_knights', 'black_bishops', 'black_rooks', 'black_queens', 'black_king',
         # 	'en_passant']
         # utils.save_input_state_to_imgs(input_state, 'tests/input_planes', names)
+
+    @utils.timer_function
+    def test_mask1(self):
+        for _ in range(50):
+            mask = np.asarray([0 for _ in range(64*73)]).reshape(73, 8, 8)
+    
+    @utils.timer_function
+    def test_mask2(self):
+        for _ in range(50):
+            mask = np.zeros(64*73).reshape(73, 8, 8)
+    
+    @utils.timer_function
+    def test_mask3(self):
+        for _ in range(50):
+            mask = np.asarray([np.asarray([0 for _ in range(64)]).reshape(8, 8) for _ in range(73)])
+    
+if __name__ == "__main__":
+    test = Test()
+    test.test_mask1()
+    test.test_mask2()
+    test.test_mask3()
