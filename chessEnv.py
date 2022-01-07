@@ -15,7 +15,7 @@ class ChessEnv:
         Initialize the chess environment
         """
         # the chessboard
-        self.board = chess.Board()
+        self.board = chess.STARTING_FEN
         self.white = white
         self.black = black
 
@@ -23,13 +23,15 @@ class ChessEnv:
         """
         Reset everything
         """
-        self.board = chess.Board()
+        self.board = chess.STARTING_FEN
 
     @staticmethod
-    def state_to_input(board: chess.Board) -> np.ndarray(config.INPUT_SHAPE):
+    def state_to_input(fen: str) -> np.ndarray(config.INPUT_SHAPE):
         """
         Convert board to a state that is interpretable by the model
         """
+
+        board = chess.Board(fen)
 
         # 1. is it white's turn? (1x8x8)
         is_white_turn = np.ones((8, 8)) if board.turn else np.zeros((8, 8))
@@ -52,7 +54,7 @@ class ChessEnv:
 
         # 3. repitition counter
         counter = np.ones(
-            (8, 8)) if board.is_repetition() else np.zeros((8, 8))
+            (8, 8)) if board.can_claim_fifty_moves() else np.zeros((8, 8))
 
         # create new np array
         arrays = []
@@ -75,16 +77,22 @@ class ChessEnv:
 
         r = np.array([is_white_turn, is_black_turn, *castling,
                      counter, *arrays, en_passant]).reshape((1, 8, 8, 20))
+        # memory management
+        del board
         return r
 
     def __str__(self):
         """
         Print the board
         """
-        return str(self.board)
+        return str(chess.Board(self.board))
 
-    def move(self, action: chess.Move):
-        """ 
-        Perform an action on the board
+    def step(self, action: str) -> str:
         """
-        pass
+        Perform a step in the game
+        """
+        board = chess.Board(self.board)
+        board.push_san(action)
+        self.board = board.fen()
+        del board
+        return self.board

@@ -8,7 +8,7 @@ class Edge:
         self.output_node = output_node
         self.action = action
 
-        self.player_turn = self.input_node.state.turn
+        self.player_turn = self.input_node.state.split(" ")[1] == "w"
 
         # each action stores 4 numbers:
         self.N = 0  # amount of times this action has been taken
@@ -25,7 +25,8 @@ class Edge:
     def upper_confidence_bound(self, N: int) -> float:
         if self.N == 0 or N == 0:
             return math.inf
-        return config.CONFIDENCE_FACTOR * math.sqrt(math.log(N) / self.N)
+        # TODO: different formula for UCB?
+        return self.P * math.sqrt(math.log(N) / self.N)
 
     def __str__(self):
         return f"{self.action}: Q={self.Q}, N={self.N}, W={self.W}, P={self.P}"

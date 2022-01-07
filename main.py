@@ -13,7 +13,7 @@ from test import Test
 class Game:
     def __init__(self, env: ChessEnv = ChessEnv(Agent(), Agent())):
         self.env = env
-        self.mcts = MCTS(env)
+        self.mcts = MCTS(env.white)
 
     def play(self):
         pass

@@ -25,8 +25,6 @@ class Agent:
 
         return model
 
-    def play_one_move(self):
-        pass
 
     def save_to_memory(self, game):
         if len(self.memory) >= self.max_replay_memory:

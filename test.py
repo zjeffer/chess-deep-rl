@@ -24,12 +24,10 @@ class Test:
 
             self.reset()
             # test en passant
-            self.env.board.push_san("e4")
-            self.env.board.push_san("a5")
-            self.env.board.push_san("e5")
-            self.env.board.push_san("Nc6")
-            self.env.board.push_san("d4")
-            self.env.board.push_san("d5")
+            for move in ["e4", "a5", "e5", "Nc6", "d4", "d5"]:
+                self.env.step(move)
+            
+            
 
             # test input_state
             input_state = self.env.state_to_input(self.env.board)

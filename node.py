@@ -5,7 +5,7 @@ from edge import Edge
 
 
 class Node:
-    def __init__(self, state: chess.Board):
+    def __init__(self, state: str):
         """
         A node is a state inside the MCTS tree.
         """
@@ -27,7 +27,7 @@ class Node:
         """
         if isinstance(node, Node):
             # TODO: is this the correct way to compare boards?
-            return self.state == node.state and self.state.move_stack[-1] == node.state.move_stack[-1]
+            return self.state == node.state
         else:
             return NotImplemented
 
@@ -35,9 +35,11 @@ class Node:
         """ 
         Get all unexplored actions for the current state. Remove already explored actions
         """
-        actions = list(self.state.generate_legal_moves())
+        board = chess.Board(self.state)
+        actions = list(board.generate_legal_moves())
         for a in self.explored_actions:
             actions.remove(a)
+        del board
         return actions
 
     def step(self, action: Move) -> Move:
@@ -45,18 +47,22 @@ class Node:
         Take a step in the game, returns the move taken or None if an error occured
         """
         try:
-            self.state.push(action)
+            board = chess.Board(self.state)
+            board.push_uci(action)
+            self.state = board.fen()
+            del board
             self.explored_actions.append(action)
         except ValueError:
             print("ERROR: Invalid move.")
             return None
-        return action
+        return self.state
 
     def is_game_over(self) -> bool:
         """
         Check if the game is over.
         """
-        return self.state.is_game_over()
+        board = chess.Board(self.state)
+        return board.is_game_over()
 
     def is_leaf(self) -> bool:
         """

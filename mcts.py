@@ -1,8 +1,8 @@
 # implement the Monte Carlo Tree Search algorithm
-from typing import Iterator
 import chess
 import chess.pgn
 from chessEnv import ChessEnv
+from agent import Agent
 from node import Node
 from edge import Edge
 import numpy as np
@@ -26,14 +26,15 @@ np_config.enable_numpy_behavior()
 
 
 class MCTS:
-    def __init__(self, env: ChessEnv):
-        self.env = env
-        self.root = Node(state=self.env.board)
+    def __init__(self, agent: Agent):
+        self.root = Node(state=chess.STARTING_FEN)
         self.amount_of_simulations = 0
         self.amount_of_expansions = 0
 
         self.game_path: list[Edge] = []
         self.cur_board: chess.Board = None
+
+        self.agent = agent
 
     def run_simulation(self):
         self.game_path = []
@@ -49,6 +50,7 @@ class MCTS:
         end_node = self.backpropagate(end_node, end_node.value)
 
         self.amount_of_simulations += 1
+        del self.game_path
         return end_node
 
     def filter_valid_move(self, move) -> None:
@@ -83,7 +85,8 @@ class MCTS:
         col = 7 - (from_square // 8)
         self.outputs.append((move, plane_index, row, col))
 
-    def probabilities_to_actions(self, probabilities: list, board: chess.Board) -> dict:
+    @utils.timer_function
+    def probabilities_to_actions(self, probabilities: list, board: str) -> dict:
         """
         Map the output vector of 4672 probabilities to moves
 
@@ -97,15 +100,13 @@ class MCTS:
             - next 8 planes: knight moves (8 directions)
             - final 9 planes: underpromotions (left diagonal, right diagonal, forward) * (three possible pieces (knight, bishop, rook))
         """
-        probabilities = probabilities.reshape(config.amount_of_planes, 8, 8)
-        mask = np.zeros(64*config.amount_of_planes).reshape(config.amount_of_planes, 8, 8)
-        logging.debug(f"Mask shape: {mask.shape}")
+        probabilities = probabilities.reshape(config.amount_of_planes, config.n, config.n)
+        mask = np.zeros((config.amount_of_planes, config.n, config.n))
 
-        actions = {} 
-        start_time = time.time()
+        actions = {}
 
         # only get valid moves
-        self.cur_board = board
+        self.cur_board = chess.Board(board)
         valid_moves = self.cur_board.generate_legal_moves()
         self.outputs = []
         threads = []
@@ -116,14 +117,17 @@ class MCTS:
                 break
             thread = threading.Thread(target=self.filter_valid_move, args=(move,))
             threads.append(thread)
-        
+
         for thread in threads:
             thread.start()
+
         for thread in threads:
             thread.join()
+
+        probabilities = probabilities.numpy()
         for move, plane_index, col, row in self.outputs:
             mask[plane_index][col][row] = 1
-            actions[move] = probabilities[plane_index][col][row]
+            actions[move.uci()] = probabilities[plane_index][col][row]
 
         # utils.save_output_state_to_imgs(mask, "tests/output_planes", "mask")
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "unfiltered")
@@ -134,6 +138,7 @@ class MCTS:
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "filtered")
         return actions
 
+    @utils.timer_function
     def select_child(self, node: Node) -> Node:
         logging.debug("Getting leaf node...")
         # find a leaf node
@@ -155,22 +160,17 @@ class MCTS:
         """
         logging.debug("Expanding...")
 
-        while self.amount_of_expansions < 100:
+        while self.amount_of_expansions < config.MAX_DEPTH:
             # print(f"{self.amount_of_expansions} expansions, move_stack length: {len(leaf.state.move_stack)}")
             self.amount_of_expansions += 1
             # don't update the leaf node's state, just the child's state
-            state = leaf.state.copy()
+            state = leaf.state
 
             # predict p and v
             # p = array of probabilities: [0, 1] for every move (including invalid moves)
             # v = [-1, 1]
-            start_time = time.time()
-            if state.turn:
-                p, v = self.env.black.predict(ChessEnv.state_to_input(state))
-            else:
-                p, v = self.env.black.predict(ChessEnv.state_to_input(state))
+            p, v = self.agent.predict(ChessEnv.state_to_input(state))
             p, v = p[0], v[0][0]
-            logging.debug(f"Prediction time: {time.time() - start_time}")
 
             logging.debug(f"Model predictions: {p}")
             logging.debug(f"Value of state: {v}")
@@ -186,10 +186,10 @@ class MCTS:
             logging.debug(f"Best action: {max_action}")
 
             # make the move. this changes leaf.state
-            leaf.step(max_action)
+            new_state = leaf.step(max_action)
 
             # create new node
-            new_node = Node(state=leaf.state.copy())
+            new_node = Node(state=new_state)
             new_node.value = v
             # set the state back to the old one (undo the move)
             leaf.state = state
@@ -200,20 +200,20 @@ class MCTS:
             
             # new node is now leaf node
             leaf = new_node
-            
+
         return leaf
 
+    @utils.timer_function
     def backpropagate(self, end_node: Node, value: float):
         logging.debug("Backpropagation...")
-        start_time = time.time()
 
         self.game_path.reverse()
+
         for edge in self.game_path:
             edge.N += 1
             edge.W += value
             edge.Q = edge.W / edge.N
-
-        logging.debug(f"Backpropagation finished in {time.time() - start_time} seconds")
+        # print(f"Q: {self.game_path[0].Q}, \t U:{self.game_path[0].upper_confidence_bound(self.amount_of_simulations)}")
         return end_node
 
     @staticmethod
