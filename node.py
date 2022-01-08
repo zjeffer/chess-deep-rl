@@ -93,7 +93,7 @@ class Node:
         """
         Get all children of the current node and their children, recursively
         """
-        if len(self.children) == 0:
+        if not len(self.children):
             return []
         children = []
         for child in self.children:

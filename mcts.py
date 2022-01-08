@@ -2,7 +2,6 @@
 import chess
 import chess.pgn
 from chessEnv import ChessEnv
-from agent import Agent
 from node import Node
 from edge import Edge
 import numpy as np
@@ -26,7 +25,7 @@ np_config.enable_numpy_behavior()
 
 
 class MCTS:
-    def __init__(self, agent: Agent):
+    def __init__(self, agent: "Agent"):
         self.root = Node(state=chess.STARTING_FEN)
         self.amount_of_simulations = 0
         self.amount_of_expansions = 0
@@ -85,7 +84,6 @@ class MCTS:
         col = 7 - (from_square // 8)
         self.outputs.append((move, plane_index, row, col))
 
-    @utils.timer_function
     def probabilities_to_actions(self, probabilities: list, board: str) -> dict:
         """
         Map the output vector of 4672 probabilities to moves
@@ -138,12 +136,10 @@ class MCTS:
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "filtered")
         return actions
 
-    @utils.timer_function
     def select_child(self, node: Node) -> Node:
         logging.debug("Getting leaf node...")
         # find a leaf node
         while not node.is_leaf():
-            logging.debug("Getting random child...")
             # choose the action that maximizes Q+U
             max_edge: Edge = max(node.edges, key=lambda edge: edge.Q +
                                  edge.upper_confidence_bound(self.amount_of_simulations))
@@ -152,7 +148,6 @@ class MCTS:
             node = max_edge.output_node
         return node
 
-    @utils.timer_function
     def expand(self, leaf: Node) -> Node:
         """
         Expand the leaf node. Use a neural network to select the best move.
@@ -203,7 +198,6 @@ class MCTS:
 
         return leaf
 
-    @utils.timer_function
     def backpropagate(self, end_node: Node, value: float):
         logging.debug("Backpropagation...")
 

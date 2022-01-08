@@ -2,7 +2,6 @@ import config
 from re import A
 import chess
 import numpy as np
-from agent import Agent
 
 import time
 import logging
@@ -10,14 +9,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 class ChessEnv:
-    def __init__(self, white: Agent, black: Agent):
+    def __init__(self):
         """
         Initialize the chess environment
         """
         # the chessboard
         self.board = chess.STARTING_FEN
-        self.white = white
-        self.black = black
 
     def reset(self):
         """

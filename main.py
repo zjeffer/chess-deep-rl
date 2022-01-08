@@ -1,49 +1,35 @@
 from agent import Agent
 from chessEnv import ChessEnv
 from mcts import MCTS
-import time
 from tqdm import tqdm
-
 import config
-import utils
-
-from test import Test
 
 
 class Game:
-    def __init__(self, env: ChessEnv = ChessEnv(Agent(), Agent())):
+    def __init__(self, env: ChessEnv, white: Agent, black: Agent):
         self.env = env
-        self.mcts = MCTS(env.white)
+        self.white = white
+        self.black = black
 
-    def play(self):
-        pass
+        self.turn = True # True = white, False = black
 
-    def run_simulations(self, n: int = 1):
-        start_time = time.time()
-        print(f"Running {n} simulations...")
-        # run n simulations
-        for _ in tqdm(range(n)):
-            self.mcts.run_simulation()
-        print("="*40)
-        print(f"Amount of simulations: {self.mcts.amount_of_simulations}")
-        print(f"Time: {time.time() - start_time}")
-        print("="*40)
 
-    def plot_mcts(self):
-        self.mcts.plot_tree()
+    def play_one_move(self):
+        if self.turn:
+            self.white.mcts = MCTS(self.white)
+            self.white.run_simulations(n = config.SIMULATIONS_PER_MOVE)
+            # TODO play best move from simulation
+
+        else:
+            self.black.run_simulations(n = config.SIMULATIONS_PER_MOVE)
+            # TODO: same for black
+        self.turn = not self.turn
 
 
 if __name__ == "__main__":
-
-    # # run tests
-    # testing = Test()
-    # testing.run_tests(n=500)
-
     white = Agent()
     black = Agent()
-    env = ChessEnv(white, black)
+    env = ChessEnv()
 
-    game = Game(env=env)
-    # white.model.summary()
-    game.run_simulations(n=config.AMOUNT_OF_SIMULATIONS)
-    # game.plot_mcts()
+    game = Game(env=env, white=white, black=black)
+    game.play_one_move()

@@ -4,6 +4,9 @@ import config
 from keras.models import Model
 import time
 import tensorflow as tf
+import utils
+from tqdm import tqdm
+from mcts import MCTS
 
 class Agent:
     def __init__(self, build_model: bool = True):
@@ -12,6 +15,8 @@ class Agent:
         if build_model:
             # this if statement is useful for testing purposes
             self.model = self.build_model()
+
+        self.mcts = MCTS(self)
 
         # memory
         self.memory = []
@@ -30,6 +35,17 @@ class Agent:
         if len(self.memory) >= self.max_replay_memory:
             self.memory.pop(0)
         self.memory.append(game)
+
+    def run_simulations(self, n: int = 1):
+        start_time = time.time()
+        print(f"Running {n} simulations...")
+        # run n simulations
+        for _ in tqdm(range(n)):
+            self.mcts.run_simulation()
+        print("="*50)
+        print(f"Amount of simulations: {self.mcts.amount_of_simulations}")
+        print(f"Time: {(time.time() - start_time):.3f} seconds")
+        print("="*50)
 
     def evaluate_network(self, best_model, amount=400):
         """
