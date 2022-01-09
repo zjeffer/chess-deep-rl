@@ -115,7 +115,6 @@ class RLModelBuilder:
         model.add(BatchNormalization(axis=1))
         model.add(Activation('relu'))
         model.add(Flatten())
-        # TODO: which activation to use for probabilities?
         model.add(Dense(self.output_shape[0], activation="sigmoid", name='policy_head'))
         return model
 
@@ -147,7 +146,7 @@ class RLModelBuilder:
         tf_model = tf.function(lambda x: model(x))
         tf_model = tf_model.get_concrete_function(x = tf.TensorSpec(model.inputs[0].shape, model.inputs[0].dtype))
 
-        # TODO: as graph or not?
+        # TODO: use v2 or v2_as_graph?
         frozen_func = convert_variables_to_constants_v2(tf_model)
         frozen_func.graph.as_graph_def()
 

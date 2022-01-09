@@ -1,4 +1,5 @@
 from tensorflow.python.types.core import ConcreteFunction
+from chessEnv import ChessEnv
 from rlmodelbuilder import RLModelBuilder
 import config
 from keras.models import Model
@@ -31,10 +32,11 @@ class Agent:
         return model
 
 
-    def save_to_memory(self, game):
+    def save_to_memory(self, state, probabilities, value):
         if len(self.memory) >= self.max_replay_memory:
+            print("Memory is full, removing oldest game")
             self.memory.pop(0)
-        self.memory.append(game)
+        self.memory.append((state, probabilities, value))
 
     def run_simulations(self, n: int = 1):
         start_time = time.time()

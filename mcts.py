@@ -1,6 +1,8 @@
 # implement the Monte Carlo Tree Search algorithm
+from tensorflow.python.ops.numpy_ops import np_config
 import chess
 import chess.pgn
+from tensorflow.python.ops.numpy_ops.np_math_ops import positive
 from chessEnv import ChessEnv
 from node import Node
 from edge import Edge
@@ -20,13 +22,12 @@ from mapper import Mapping
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-from tensorflow.python.ops.numpy_ops import np_config
 np_config.enable_numpy_behavior()
 
 
 class MCTS:
-    def __init__(self, agent: "Agent"):
-        self.root = Node(state=chess.STARTING_FEN)
+    def __init__(self, agent: "Agent", state: str = chess.STARTING_FEN):
+        self.root = Node(state=state)
         self.amount_of_simulations = 0
         self.amount_of_expansions = 0
 
@@ -40,9 +41,11 @@ class MCTS:
         self.amount_of_expansions = 0
         node = self.root
         # traverse the tree by selecting edges with max Q+U
+        # in the first sim, the root node has no children, so leaf = root
         leaf = self.select_child(node)
+        leaf.N += 1
 
-        # expand the leaf node (recursive function)
+        # expand the leaf node
         end_node = self.expand(leaf)
 
         # backpropagate the result
@@ -51,6 +54,17 @@ class MCTS:
         self.amount_of_simulations += 1
         del self.game_path
         return end_node
+
+    def select_child(self, node: Node) -> Node:
+        while not node.is_leaf():
+            # choose the action that maximizes Q+U
+            max_edge: Edge = max(
+                node.edges, key=lambda edge: edge.Q + edge.upper_confidence_bound(node.N))
+
+            # get that actions's new node
+            node = max_edge.output_node
+            self.game_path.append(max_edge)
+        return node
 
     def filter_valid_move(self, move) -> None:
         logging.debug("Filtering valid moves...")
@@ -98,7 +112,8 @@ class MCTS:
             - next 8 planes: knight moves (8 directions)
             - final 9 planes: underpromotions (left diagonal, right diagonal, forward) * (three possible pieces (knight, bishop, rook))
         """
-        probabilities = probabilities.reshape(config.amount_of_planes, config.n, config.n)
+        probabilities = probabilities.reshape(
+            config.amount_of_planes, config.n, config.n)
         mask = np.zeros((config.amount_of_planes, config.n, config.n))
 
         actions = {}
@@ -113,7 +128,8 @@ class MCTS:
                 move = next(valid_moves)
             except StopIteration:
                 break
-            thread = threading.Thread(target=self.filter_valid_move, args=(move,))
+            thread = threading.Thread(
+                target=self.filter_valid_move, args=(move,))
             threads.append(thread)
 
         for thread in threads:
@@ -136,17 +152,6 @@ class MCTS:
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "filtered")
         return actions
 
-    def select_child(self, node: Node) -> Node:
-        logging.debug("Getting leaf node...")
-        # find a leaf node
-        while not node.is_leaf():
-            # choose the action that maximizes Q+U
-            max_edge: Edge = max(node.edges, key=lambda edge: edge.Q +
-                                 edge.upper_confidence_bound(self.amount_of_simulations))
-
-            # get the child node with the highest Q+U
-            node = max_edge.output_node
-        return node
 
     def expand(self, leaf: Node) -> Node:
         """
@@ -155,63 +160,49 @@ class MCTS:
         """
         logging.debug("Expanding...")
 
-        while self.amount_of_expansions < config.MAX_DEPTH:
-            # print(f"{self.amount_of_expansions} expansions, move_stack length: {len(leaf.state.move_stack)}")
+        # get all possible moves
+        possible_actions = list(chess.Board(leaf.state).generate_legal_moves())
+
+        if not len(possible_actions):
+            # TODO: return something here instead of exception
+            raise Exception("No possible moves, game is over")
+
+        # predict p and v
+        # p = array of probabilities: [0, 1] for every move (including invalid moves)
+        # v = [-1, 1]
+        p, v = self.agent.predict(ChessEnv.state_to_input(leaf.state))
+        p, v = p[0], v[0][0]
+        actions = self.probabilities_to_actions(p, leaf.state)
+
+        logging.debug(f"Model predictions: {p}")
+        logging.debug(f"Value of state: {v}")
+
+        leaf.value = v
+
+        # create a child node for every action
+        for action in possible_actions:
+            # make the move and get the new board
+            new_state = leaf.step(action)
+            # add a new child node with the new board, the action taken and its prior probability
+            leaf.add_child(Node(new_state), action, actions[action.uci()])
             self.amount_of_expansions += 1
-            # don't update the leaf node's state, just the child's state
-            state = leaf.state
-
-            # predict p and v
-            # p = array of probabilities: [0, 1] for every move (including invalid moves)
-            # v = [-1, 1]
-            p, v = self.agent.predict(ChessEnv.state_to_input(state))
-            p, v = p[0], v[0][0]
-
-            logging.debug(f"Model predictions: {p}")
-            logging.debug(f"Value of state: {v}")
-            
-            actions = self.probabilities_to_actions(p, state)
-
-            if not len(actions):
-                logging.debug("No valid moves, stopping expansion")
-                return leaf
-
-            # get action with highest probability
-            max_action = max(actions, key=lambda action: actions[action])
-            logging.debug(f"Best action: {max_action}")
-
-            # make the move. this changes leaf.state
-            new_state = leaf.step(max_action)
-
-            # create new node
-            new_node = Node(state=new_state)
-            new_node.value = v
-            # set the state back to the old one (undo the move)
-            leaf.state = state
-            # create the edge between this node and the new node
-            edge = leaf.add_child(new_node, max_action, actions[max_action])
-            # add the edge to the tree
-            self.game_path.append(edge)
-            
-            # new node is now leaf node
-            leaf = new_node
-
         return leaf
 
-    def backpropagate(self, end_node: Node, value: float):
+    def backpropagate(self, end_node: Node, value: float) -> Node:
         logging.debug("Backpropagation...")
 
+        # print(self.game_path)
+        # print(f"Game path length: {len(self.game_path)}")
         self.game_path.reverse()
 
         for edge in self.game_path:
             edge.N += 1
             edge.W += value
             edge.Q = edge.W / edge.N
-        # print(f"Q: {self.game_path[0].Q}, \t U:{self.game_path[0].upper_confidence_bound(self.amount_of_simulations)}")
         return end_node
 
     @staticmethod
-    def get_piece_amount(board: chess.Board):
+    def get_piece_amount(board: chess.Board) -> int:
         return len(board.piece_map().values())
 
     def estimate_winner(self, node: Node) -> int:
@@ -227,15 +218,19 @@ class MCTS:
             logging.debug("Draw")
             return 0
 
-    def plot_tree(self):
+    def plot_node(self, dot: Digraph, node: Node):
+        dot.node(f"{node.state}", f"N")
+        for edge in node.edges:
+            dot.edge(str(edge.input_node.state), str(
+                edge.output_node.state), label=edge.action.uci())
+            dot = self.plot_node(dot, edge.output_node)
+        return dot
+
+    def plot_tree(self) -> None:
         # tree plotting
-        # TODO: fix because i'm now using an Edge class
         dot = Digraph(comment='Chess MCTS Tree')
         print(f"# of nodes in tree: {len(self.root.get_all_children())}")
-        print(f"Plotting tree...")
-        for node in tqdm(self.root.get_all_children()):
-            dot.node(str(node.state.fen()), label="*")
-            for child in node.children:
-                dot.edge(str(node.state.fen()), str(
-                    child.state.fen()), label=str(child.action))
+
+        # recursively plot the tree
+        dot = self.plot_node(dot, self.root)
         dot.save('mcts_tree.gv')

@@ -12,6 +12,9 @@ class Node:
         self.state = state
         # the edges connected to this node
         self.edges: list[Edge] = []
+        # visit count
+        self.N = 0
+
         # result of this node. 1 = won, 0 = draw, -1 = lost, None = not done yet
         self.result = None
 
@@ -23,10 +26,9 @@ class Node:
     def __eq__(self, node: object) -> bool:
         """
         Check if two nodes are equal.
-        Two nodes are equal if the state is the same and it got there through the same action
+        Two nodes are equal if the state is the same
         """
         if isinstance(node, Node):
-            # TODO: is this the correct way to compare boards?
             return self.state == node.state
         else:
             return NotImplemented
@@ -42,20 +44,16 @@ class Node:
         del board
         return actions
 
-    def step(self, action: Move) -> Move:
+    def step(self, action: Move) -> str:
         """
-        Take a step in the game, returns the move taken or None if an error occured
+        Take a step in the game, returns new state
         """
-        try:
-            board = chess.Board(self.state)
-            board.push_uci(action)
-            self.state = board.fen()
-            del board
-            self.explored_actions.append(action)
-        except ValueError:
-            print("ERROR: Invalid move.")
-            return None
-        return self.state
+        board = chess.Board(self.state)
+        board.push(action)
+        new_state = board.fen()
+        del board
+        self.explored_actions.append(action)
+        return new_state
 
     def is_game_over(self) -> bool:
         """
@@ -68,7 +66,7 @@ class Node:
         """
         Check if the current node is a leaf node.
         """
-        return not len(self.edges)
+        return self.N == 0
 
     def add_child(self, child: "Node", action: Move, prior: float) -> Edge:
         """
@@ -80,25 +78,14 @@ class Node:
         self.edges.append(edge)
         return edge
 
-    def calculate_children(self) -> None:
-        """
-        Calculate the children of the current node.
-        """
-        for action in self.get_unexplored_actions():
-            state = self.state.copy()
-            state.push(action)
-            self.add_child(Node(state=state))
-
     def get_all_children(self) -> list["Node"]:
         """
         Get all children of the current node and their children, recursively
         """
-        if not len(self.children):
-            return []
         children = []
-        for child in self.children:
-            children.append(child)
-            children.extend(child.get_all_children())
+        for edge in self.edges:
+            children.append(edge.output_node)
+            children.extend(edge.output_node.get_all_children())
         return children
 
     def estimate_score(self) -> int:

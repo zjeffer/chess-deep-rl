@@ -1,21 +1,20 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 20
-MAX_DEPTH = 100
+SIMULATIONS_PER_MOVE = 800
+
+# exploration parameters (these are values from AZ's paper)
+# TODO: change these values
+C_base = 10 # defines how CPUCT grows
+C_init = 3 
 
 # ============= NEURAL NETWORK INPUTS =============
 # 2 players, 6 pieces, 8x8 board
 n = 8  # board size
-t = 8  # amount of timesteps
-m = 2 * 6 + 1  # pieces for every player + the square for en passant
-# additional values: repitition counter, side to move, castling rights for every side and every player
-l = 1 + 1 + 1 + (2*2)
-# TODO: according to the paper, m*t+l should be 119 (currently: 111)
-INPUT_SHAPE = (n, n, m*t+l)
-
-# trying without previous moves first, TODO: try with t - 1 previous boards as well
-INPUT_SHAPE = (n, n, 20)
+# non boolean values: pieces for every player + the square for en passant
+# boolean values: side to move, castling rights for every side and every player, is repitition
+amount_of_input_planes =  (2*6 + 1) + (1 + 4 + 1)
+INPUT_SHAPE = (n, n, amount_of_input_planes)
 
 # ============= NEURAL NETWORK OUTPUTS =============
 # the model has 2 outputs: policy and value
@@ -36,9 +35,9 @@ OUTPUT_SHAPE = (8*8*amount_of_planes, 1)
 
 
 # ============= NEURAL NETWORK PARAMETERS =============
-# TODO: change if necessary. AZ used 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
-LEARNING_RATE = 0.001
-# filters for the convolutional layers
+# TODO: change if necessary. AZ started with 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
+LEARNING_RATE = 0.2
+# filters for the convolutional layers (AZ: 256)
 CONVOLUTION_FILTERS = 32
 # amount of hidden residual layers
 # According to the AlphaGo Zero paper:

@@ -56,6 +56,7 @@ for a high amount of games. Whoever wins the most games, is the best network.
 * https://www.nature.com/articles/nature24270/figures/2 From AlphaGo Zero paper: MCTS 
 * https://joshvarty.github.io/AlphaZero/ and https://github.com/JoshVarty/AlphaZeroSimple AZ on simple Connect2 environment
 * https://chess.stackexchange.com/a/37477 Explanation for input and output formats of neural network 
+* https://tmoer.github.io/AlphaZero/ AlphaZero implementation for Atari game, with TensorFlow
 
 ### Diagrams
 

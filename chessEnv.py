@@ -1,6 +1,7 @@
 import config
 from re import A
 import chess
+from chess import Move
 import numpy as np
 
 import time
@@ -14,13 +15,13 @@ class ChessEnv:
         Initialize the chess environment
         """
         # the chessboard
-        self.board = chess.STARTING_FEN
+        self.board = chess.Board()
 
     def reset(self):
         """
         Reset everything
         """
-        self.board = chess.STARTING_FEN
+        self.board = chess.Board()
 
     @staticmethod
     def state_to_input(fen: str) -> np.ndarray(config.INPUT_SHAPE):
@@ -32,10 +33,6 @@ class ChessEnv:
 
         # 1. is it white's turn? (1x8x8)
         is_white_turn = np.ones((8, 8)) if board.turn else np.zeros((8, 8))
-
-        # 2. is it black's turn? (1x8x8)
-        # opposite of is_white_turn
-        is_black_turn = np.zeros((8, 8)) if board.turn else np.ones((8, 8))
 
         # 2. castling rights (4x8x8)
         castling = np.asarray([
@@ -72,8 +69,8 @@ class ChessEnv:
         if board.has_legal_en_passant():
             en_passant[7 - int(board.ep_square/8)][board.ep_square % 8] = True
 
-        r = np.array([is_white_turn, is_black_turn, *castling,
-                     counter, *arrays, en_passant]).reshape((1, 8, 8, 20))
+        r = np.array([is_white_turn, *castling,
+                     counter, *arrays, en_passant]).reshape((1, *config.INPUT_SHAPE))
         # memory management
         del board
         return r
@@ -84,12 +81,9 @@ class ChessEnv:
         """
         return str(chess.Board(self.board))
 
-    def step(self, action: str) -> str:
+    def step(self, action: Move) -> chess.Board:
         """
         Perform a step in the game
         """
-        board = chess.Board(self.board)
-        board.push_san(action)
-        self.board = board.fen()
-        del board
+        self.board.push(action)
         return self.board
