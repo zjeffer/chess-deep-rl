@@ -38,12 +38,12 @@ OUTPUT_SHAPE = (8*8*amount_of_planes, 1)
 # TODO: change if necessary. AZ started with 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
 LEARNING_RATE = 0.2
 # filters for the convolutional layers (AZ: 256)
-CONVOLUTION_FILTERS = 32
+CONVOLUTION_FILTERS = 256
 # amount of hidden residual layers
 # According to the AlphaGo Zero paper:
 #    "For the larger run (40 block, 40 days), MCTS search parameters were re-optimised using the neural network trained in the smaller run (20 block, 3 days)."
 # ==> First train a small NN, then optimize longer with a larger NN.
-AMOUNT_OF_RESIDUAL_BLOCKS = 1
+AMOUNT_OF_RESIDUAL_BLOCKS = 19
 
 # where to save the model
 MODEL_FOLDER = './models/'

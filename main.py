@@ -54,7 +54,7 @@ if __name__ == "__main__":
     env = ChessEnv()
 
     game = Game(env=env, white=white, black=black)
-    for _ in range(20):
+    for _ in range(10):
         game.play_one_move()
     # print("Plotting tree")
     # game.white.mcts.plot_tree()

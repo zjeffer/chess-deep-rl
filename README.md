@@ -1,5 +1,7 @@
 # Chess engine using Deep Reinforcement learning
 
+# How does it work?
+
 ### Every move, run a high number amount of MCTS simulations:
 
 ![MCTS steps for 1 simulation](img/MCTS-steps.png "MCTS steps for 1 simulation")
@@ -41,13 +43,22 @@
 
 * Sample a mini-batch of positions from a high amount of games
 * Train the network on the mini-batch
+* Use a custom loss function (TODO)
 
 ### Evaluate the network
 
-To know whether the new network is better than the previous one, let the two networks play
-for a high amount of games. Whoever wins the most games, is the best network.
+To know whether the new network is better than the previous one, let the new network play
+against the previous best for a high amount of games. Whoever wins the most games, is the new best network.
 
-## Useful sources
+### Class structure
+
+![Class structure](img/class-structure.png "Class structure")
+
+Each player needs to have its own agent object. Every agent has its own 
+MCTS tree and neural network.
+
+
+# Useful sources
 
 ### Wikipedia articles & Library documentation
 
