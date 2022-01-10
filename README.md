@@ -2,25 +2,40 @@
 
 ### Every move, run a high number amount of MCTS simulations:
 
+![MCTS steps for 1 simulation](img/MCTS-steps.png "MCTS steps for 1 simulation")
+
+> Image source: https://sebastianbodenstein.net/post/alphazero/
+
 **To run one MCTS simulation:**
 
-1. To traverse the tree, select the edge with max Q+U value
-	* Q = mean value of the state over all simulations in this search
+1. To traverse the tree, keep selecting the edges with maximum Q+U value
+	* Q = mean value of the state over all simulations
 	* U = upper confidence bound
 	* Do this until a leaf node is reached
-2. Expand the leaf node. Use the neural network to select the best move. This will generate a new state
-	* If the new state is a terminal state, stop here
-	* If the new state is not terminal, keep expanding until we reach a terminal state (=rollout)
-	* N = 0, W = 0, Q = 0, P = p_a (probability for that action)
-3. Backpropagation: update the values from each node visited in step 2
-	* N = N + 1
-	* W = W + v
-	* Q = W / N
+2. Expand the leaf node by adding a new edge for every possible action in the state
+	* Input the leaf node into the neural network
+	* The output:
+		1) The probabilities 
+		2) The value of the state
+	* Initialize the new edge's variables with these values:
+		* `N = 0`
+		* `W = 0` 
+		* `Q = 0`
+		* `P = p_a` (prior probability for that action)
+	* Add nodes (new states) for each action to the tree
+3. Backpropagation
+	* From the leaf node, backpropagate to the root node
+	* For every edge in the path, update the edge's variables
+		* `N = N + 1`
+		* `W = W + v`, v is the value of the leaf node predicted by the NN in step 2.
+		* `Q = W / N`
 
 ### After these simulations, the move can be chosen:
 
-* The move with greatest N (deterministically)
+* The move with greatest $N$ (deterministically)
 * According to a distribution (stochastically): $\pi \sim N^{\frac{1}{T}}$, T = temperature control
+
+![Playing one move](img/ChessRL-schematic.png "Playing one move")
 
 ### Training the network
 
@@ -57,6 +72,7 @@ for a high amount of games. Whoever wins the most games, is the best network.
 * https://joshvarty.github.io/AlphaZero/ and https://github.com/JoshVarty/AlphaZeroSimple AZ on simple Connect2 environment
 * https://chess.stackexchange.com/a/37477 Explanation for input and output formats of neural network 
 * https://tmoer.github.io/AlphaZero/ AlphaZero implementation for Atari game, with TensorFlow
+* https://sebastianbodenstein.net/post/alphazero/ Great explanation about AZ's variant of MCTS 
 
 ### Diagrams
 
