@@ -2,6 +2,10 @@
 
 # How does it work?
 
+
+![Playing one move](img/ChessRL-schematic.png "Playing one move")
+
+
 ### Every move, run a high number amount of MCTS simulations:
 
 ![MCTS steps for 1 simulation](img/MCTS-steps.png "MCTS steps for 1 simulation")
@@ -37,11 +41,17 @@
 * The move with greatest $N$ (deterministically)
 * According to a distribution (stochastically): $\pi \sim N^{\frac{1}{T}}$, T = temperature control
 
-![Playing one move](img/ChessRL-schematic.png "Playing one move")
+### Creating a training set
+
+* For every move, store:
+	* The state
+	* The search probabilities
+	* The winner, (added once the game is over)
+
 
 ### Training the network
 
-* Sample a mini-batch of positions from a high amount of games
+* Sample a mini-batch from a high amount of games
 * Train the network on the mini-batch
 * Use a custom loss function (TODO)
 
