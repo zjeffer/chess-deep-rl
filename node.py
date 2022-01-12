@@ -10,16 +10,11 @@ class Node:
         A node is a state inside the MCTS tree.
         """
         self.state = state
+        self.turn = chess.Board(state).turn
         # the edges connected to this node
         self.edges: list[Edge] = []
-        # visit count
+        # the visit count for this node
         self.N = 0
-
-        # result of this node. 1 = won, 0 = draw, -1 = lost, None = not done yet
-        self.result = None
-
-        # the explored actions for this state
-        self.explored_actions: list[Move] = []
 
         self.value = 0
 
@@ -33,17 +28,6 @@ class Node:
         else:
             return NotImplemented
 
-    def get_unexplored_actions(self) -> list[Move]:
-        """ 
-        Get all unexplored actions for the current state. Remove already explored actions
-        """
-        board = chess.Board(self.state)
-        actions = list(board.generate_legal_moves())
-        for a in self.explored_actions:
-            actions.remove(a)
-        del board
-        return actions
-
     def step(self, action: Move) -> str:
         """
         Take a step in the game, returns new state
@@ -52,7 +36,6 @@ class Node:
         board.push(action)
         new_state = board.fen()
         del board
-        self.explored_actions.append(action)
         return new_state
 
     def is_game_over(self) -> bool:

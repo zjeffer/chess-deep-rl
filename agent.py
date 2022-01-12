@@ -12,6 +12,7 @@ from mcts import MCTS
 class Agent:
     def __init__(self, build_model: bool = True):
         self.model: Model = None
+        self.MAX_REPLAY_MEMORY = config.MAX_REPLAY_MEMORY
         self.tf_model: ConcreteFunction = None
         if build_model:
             # this if statement is useful for testing purposes
@@ -26,27 +27,15 @@ class Agent:
         # create the model
         model_builder = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE)
         model = model_builder.build_model()
-
-        # self.tf_model = model_builder.convert_keras_to_tensorflow_model(model)
-
         return model
-
-
-    def save_to_memory(self, state, probabilities, value):
-        if len(self.memory) >= self.max_replay_memory:
-            print("Memory is full, removing oldest game")
-            self.memory.pop(0)
-        self.memory.append((state, probabilities, value))
 
     def run_simulations(self, n: int = 1):
         start_time = time.time()
         print(f"Running {n} simulations...")
         # run n simulations
-        for _ in tqdm(range(n)):
-            self.mcts.run_simulation()
+        self.mcts.run_simulations(n)
         print("="*50)
-        print(f"Amount of simulations: {self.mcts.amount_of_simulations}")
-        print(f"Time: {(time.time() - start_time):.3f} seconds")
+        print(f"Time: {(time.time() - start_time):.3f} seconds for {n} simulations")
         print("="*50)
 
     def evaluate_network(self, best_model, amount=400):

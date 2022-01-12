@@ -10,18 +10,19 @@ logging.basicConfig(level=logging.INFO)
 
 
 class ChessEnv:
-    def __init__(self):
+    def __init__(self, fen: str = None):
         """
         Initialize the chess environment
         """
         # the chessboard
-        self.board = chess.Board()
+        self.fen = fen
+        self.reset()
 
     def reset(self):
         """
         Reset everything
         """
-        self.board = chess.Board()
+        self.board = chess.Board(self.fen)
 
     @staticmethod
     def state_to_input(fen: str) -> np.ndarray(config.INPUT_SHAPE):

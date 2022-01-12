@@ -1,11 +1,11 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 800
+SIMULATIONS_PER_MOVE = 200
 
-# exploration parameters (these are values from AZ's paper)
+# exploration parameters 
 # TODO: change these values
-C_base = 10 # defines how CPUCT grows
+C_base = 5 # defines how CPUCT grows
 C_init = 3 
 
 # ============= NEURAL NETWORK INPUTS =============
@@ -52,3 +52,6 @@ MODEL_FOLDER = './models/'
 BATCH_SIZE = 512
 EPOCHS = 1
 
+# ============= MEMORY CONFIGURATION =============
+MEMORY_DIR = "./memory/"
+MAX_REPLAY_MEMORY = 1000000

@@ -7,7 +7,6 @@ class Trainer:
 		self.model = model
 
 		self.batch_size = config.BATCH_SIZE
-		self.epochs = config.EPOCHS
 
 
 	def sample_batch(self):

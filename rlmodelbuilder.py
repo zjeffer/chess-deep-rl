@@ -69,6 +69,7 @@ class RLModelBuilder:
                 'value_head': 'mean_squared_error'
             },
             optimizer=Adam(learning_rate=config.LEARNING_RATE),
+            # TODO: change loss weights
             loss_weights={
                 'policy_head': 0.5,
                 'value_head': 0.5
@@ -137,21 +138,3 @@ class RLModelBuilder:
         model.add(Dense(self.output_shape[1],
                   activation='tanh', name='value_head'))
         return model
-
-    @staticmethod
-    def convert_keras_to_tensorflow_model(model: Model) -> ConcreteFunction:
-        """
-        Converts a keras model to a tensorflow model and returns the Concrete Function
-        """
-        tf_model = tf.function(lambda x: model(x))
-        tf_model = tf_model.get_concrete_function(x = tf.TensorSpec(model.inputs[0].shape, model.inputs[0].dtype))
-
-        # TODO: use v2 or v2_as_graph?
-        frozen_func = convert_variables_to_constants_v2(tf_model)
-        frozen_func.graph.as_graph_def()
-
-        print(f"Frozen model inputs: {frozen_func.inputs}")
-        print(f"Frozen model outputs: {frozen_func.outputs}")
-
-        return frozen_func
-
