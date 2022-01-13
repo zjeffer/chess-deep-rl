@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class ChessEnv:
-    def __init__(self, fen: str = None):
+    def __init__(self, fen: str = chess.STARTING_FEN):
         """
         Initialize the chess environment
         """

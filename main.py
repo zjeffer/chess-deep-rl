@@ -24,14 +24,15 @@ class Game:
         self.env.reset()
         self.turn = self.env.board.turn  # True = white, False = black
 
-    def play_one_game(self, stochastic: bool = True) -> None:
+    @utils.timer_function
+    def play_one_game(self, stochastic: bool = True) -> int:
         self.reset()
         self.memory.append([])
+        print(self.env.board)
         while not self.env.board.is_game_over():
             self.play_moves(stochastic=stochastic)
         print(f"Game over. Result: {self.env.board.result()}")
         # save game result to memory for all games
-        # Returns ``1-0``, ``0-1`` or ``1/2-1/2``.
         winner = 1 if self.env.board.result() == "1-0" else - \
             1 if self.env.board.result() == "0-1" else 0
         for index, element in enumerate(self.memory[-1]):
@@ -39,6 +40,7 @@ class Game:
 
         game = ChessGame()
         # starting position
+        print(self.env.fen)
         game.setup(self.env.fen)
         # add moves
         node = game.add_variation(self.env.board.move_stack[0])
@@ -49,7 +51,9 @@ class Game:
         print(game)
 
         # save memory to file
-        # self.save_game()
+        self.save_game()
+
+        return winner
 
     def play_moves(self, n: int = 1, stochastic: bool = True) -> None:
         for _ in range(n):
@@ -63,11 +67,10 @@ class Game:
             current_player.run_simulations(n=config.SIMULATIONS_PER_MOVE)
             # play best move from simulations
 
-            print(
-                f"Amount of children in tree: {len(current_player.mcts.root.get_all_children())}")
+            # print(f"Amount of children in tree: {len(current_player.mcts.root.get_all_children())}")
             moves = current_player.mcts.root.edges
-            for move in moves:
-                print(f"#### MOVE: {move}")
+            # for move in moves:
+            #     print(f"#### MOVE: {move}")
 
             # TODO: save each move to memory
             # TODO: check if storing input state is faster/less space-consuming than storing the fen string
@@ -103,10 +106,11 @@ class Game:
     @utils.timer_function
     def save_game(self):
         # the game id consist of game + datetime
-        game_id = f"game-{uuid.uuid4()[:8]}"
+        game_id = f"game-{str(uuid.uuid4())[:8]}"
         np.save(os.path.join(config.MEMORY_DIR, game_id), self.memory)
         print(
             f"Game saved to {os.path.join(config.MEMORY_DIR, game_id)}.npy")
+        print(f"Memory size: {len(self.memory)}")
 
 
 if __name__ == "__main__":
@@ -116,10 +120,22 @@ if __name__ == "__main__":
 
     # test with a mate in 1 game (black to play)
     # env = ChessEnv("5K2/r1r5/p2p4/k1pP4/2P5/8/8/8 b - - 1 2")
-    env = ChessEnv("8/p7/8/R1rR2p1/4pk1p/7P/P4K2/8 w - - 1 35")
+    env = ChessEnv()
 
     game = Game(env=env, white=white, black=black)
-    # game.play_moves(10)
-    game.play_one_game(stochastic=False)
-    # print("Plotting tree")
-    # game.white.mcts.plot_tree()
+
+    counter = {
+        "white": 0,
+        "black": 0,
+        "draw": 0
+    }
+    while True:
+        winner = game.play_one_game(stochastic=True)
+        if winner == 1:
+            counter["white"] += 1
+        elif winner == -1:
+            counter["black"] += 1
+        else:
+            counter["draw"] += 1
+        print(
+            f"Game results: {counter['white']} - {counter['black']} - {counter['draw']}")

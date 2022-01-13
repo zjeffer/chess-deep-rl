@@ -1,7 +1,7 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 200
+SIMULATIONS_PER_MOVE = 100
 
 # exploration parameters 
 # TODO: change these values
