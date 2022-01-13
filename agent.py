@@ -8,15 +8,15 @@ import tensorflow as tf
 import utils
 from tqdm import tqdm
 from mcts import MCTS
+from keras.models import load_model
 
 class Agent:
-    def __init__(self, build_model: bool = True):
-        self.model: Model = None
+    def __init__(self, model_path: str = None):
         self.MAX_REPLAY_MEMORY = config.MAX_REPLAY_MEMORY
-        self.tf_model: ConcreteFunction = None
-        if build_model:
-            # this if statement is useful for testing purposes
-            self.model = self.build_model()
+        if model_path is None:
+            self.model: Model = self.build_model()
+        else:
+            self.model = load_model(model_path)
 
         self.mcts = MCTS(self)
 

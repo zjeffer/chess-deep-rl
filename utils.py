@@ -1,11 +1,9 @@
-from typing import Iterator
-from chess import Move
+import chess
+from chess import Move, PieceType
 import numpy as np
 from PIL import Image
 import time
-
-import threading
-import queue
+from mapper import Mapping
 
 
 def save_input_state_to_imgs(input_state: np.ndarray, path: str, names: list = None, only_full: bool = False):
@@ -69,23 +67,46 @@ def timer_function(func):
         return result
     return wrap_func
 
-class Worker(threading.Thread):
-    def __init__(self, moves: Iterator[Move], *args, **kwargs):
-        self.moves = moves
-        super(Worker, self).__init__(*args, **kwargs)
+def moves_to_output_vector(moves: dict, board: chess.Board) -> np.ndarray:
+    """
+    Convert a dictionary of moves to a vector of probabilities
+    """
+    vector = np.zeros((73, 8, 8), dtype=np.float32)
+    for move in moves:
+        plane_index, row, col = move_to_plane_index(move, board)
+        vector[plane_index, row, col] = moves[move]
+    return np.asarray(vector)
     
-    def run(self):
-        while True:
-            try: 
-                move = next(self.moves)
-            except StopIteration:
-                print("End of moves")
-                return
-            return move
 
-# q = queue.Queue()
-# for move in [1, 2, 3, 4]:
-#     q.put_nowait(move)
-# for _ in range(20):
-#     Worker(q).start()
-# q.join()
+def move_to_plane_index(move: str, board: chess.Board):
+    # convert move to plane index
+    move: Move = Move.from_uci(move)
+    # get start and end position
+    from_square = move.from_square
+    to_square = move.to_square
+    # get piece
+    piece: chess.Piece = board.piece_at(from_square)
+
+    if piece is None:
+            raise Exception(f"No piece at {from_square}")
+
+    plane_index: int = None
+
+    if move.promotion and move.promotion != chess.QUEEN:
+        piece_type, direction = Mapping.get_underpromotion_move(
+            move.promotion, from_square, to_square
+        )
+        plane_index = Mapping.mapper[piece_type][1 - direction]
+    else:
+        if piece.piece_type == chess.KNIGHT:
+            # get direction
+                direction = Mapping.get_knight_move(from_square, to_square)
+                plane_index = Mapping.mapper[direction]
+        else:
+            # get direction of queen-type move
+            direction, distance = Mapping.get_queenlike_move(
+                from_square, to_square)
+            plane_index = Mapping.mapper[direction][np.abs(distance)-1]
+    row = from_square % 8
+    col = 7 - (from_square // 8)
+    return (plane_index, row, col)

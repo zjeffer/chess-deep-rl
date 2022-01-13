@@ -1,3 +1,4 @@
+from re import search
 import uuid
 from agent import Agent
 from chessEnv import ChessEnv
@@ -98,8 +99,8 @@ class Game:
 
     def save_to_memory(self, state, moves) -> None:
         sum_move_visits = sum(e.N for e in moves)
-        search_probabilities = [
-            {e.action.uci(): e.N / sum_move_visits} for e in moves]
+        # create dictionary of moves and their probabilities
+        search_probabilities = {e.action.uci(): e.N / sum_move_visits for e in moves}
         # winner gets added after game is over
         self.memory[-1].append((state, search_probabilities, None))
 
@@ -107,21 +108,21 @@ class Game:
     def save_game(self):
         # the game id consist of game + datetime
         game_id = f"game-{str(uuid.uuid4())[:8]}"
-        np.save(os.path.join(config.MEMORY_DIR, game_id), self.memory)
+        np.save(os.path.join(config.MEMORY_DIR, game_id), self.memory[-1])
         print(
             f"Game saved to {os.path.join(config.MEMORY_DIR, game_id)}.npy")
         print(f"Memory size: {len(self.memory)}")
 
 
 if __name__ == "__main__":
-    white = Agent()
-    black = Agent()
-    # env = ChessEnv("8/8/8/8/k7/r7/p7/K7 w - - 0 1")
+    model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
+    white = Agent(model_path=model_path)
+    black = Agent(model_path=model_path)
 
     # test with a mate in 1 game (black to play)
     # env = ChessEnv("5K2/r1r5/p2p4/k1pP4/2P5/8/8/8 b - - 1 2")
-    env = ChessEnv()
 
+    env = ChessEnv()
     game = Game(env=env, white=white, black=black)
 
     counter = {

@@ -1,7 +1,7 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 100
+SIMULATIONS_PER_MOVE = 50
 
 # exploration parameters 
 # TODO: change these values
@@ -49,9 +49,10 @@ AMOUNT_OF_RESIDUAL_BLOCKS = 19
 MODEL_FOLDER = './models/'
 
 # ============= TRAINING PARAMETERS =============
-BATCH_SIZE = 512
+BATCH_SIZE = 256
 EPOCHS = 1
+LOSS_PLOTS_FOLDER="./plots"
 
 # ============= MEMORY CONFIGURATION =============
-MEMORY_DIR = "./memory/"
+MEMORY_DIR = "./memory"
 MAX_REPLAY_MEMORY = 1000000
