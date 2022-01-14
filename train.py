@@ -13,6 +13,7 @@ import pandas as pd
 import uuid
 import utils
 from tqdm import tqdm
+from rlmodelbuilder import RLModelBuilder
 
 class Trainer:
     def __init__(self, model: Model):
@@ -64,7 +65,7 @@ class Trainer:
             history.append(losses)
         
         # save the new model
-        # save_model(self.model, os.path.join(config.MODEL_FOLDER, "model.h5"))
+        save_model(self.model, os.path.join(config.MODEL_FOLDER, "model.h5"))
         return history
 
     def plot_loss(self, history):
@@ -77,12 +78,13 @@ class Trainer:
         plt.plot(policy_loss, label='policy_head_loss')
         plt.plot(value_loss, label='value_head_loss')
         plt.legend()
-        plt.title("Loss over time")
+        plt.title(f"Loss over time\nLearning rate: {config.LEARNING_RATE}")
         plt.savefig(f'{config.LOSS_PLOTS_FOLDER}/loss-{str(uuid.uuid4())[:8]}.png')
         del df
 
 if __name__ == "__main__":
-    model = load_model(os.path.join(config.MODEL_FOLDER, "model.h5"))
+    # model = load_model(os.path.join(config.MODEL_FOLDER, "model.h5"))
+    model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
     trainer = Trainer(model=model)
 
     files = os.listdir(config.MEMORY_DIR)
