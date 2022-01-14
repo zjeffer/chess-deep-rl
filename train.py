@@ -27,6 +27,7 @@ class Trainer:
             np.random.shuffle(data)
             return data[:self.batch_size]
 
+    @utils.timer_function
     def split_Xy(self, data) -> Tuple[np.ndarray, np.ndarray]:
         # board to input format (19x8x8)
         X = np.array([ChessEnv.state_to_input(i[0])[0] for i in data])
@@ -57,11 +58,15 @@ class Trainer:
         y = the search probs by MCTS (array of dicts), and the winner (-1, 0, 1)
         """
         history = []
-        for _ in tqdm(range(int(len(data)/self.batch_size))):
-            batch = self.sample_batch(data)
-            X, (y_probs, y_value) = self.split_Xy(batch)
-
-            losses = self.train_batch(X, y_probs, y_value)
+        X, (y_probs, y_value) = self.split_Xy(data)
+        for _ in tqdm(range(int(len(data)/5))):
+            indexes = np.random.choice(len(data), size=self.batch_size, replace=True)
+            # only select X values with these indexes
+            X_batch = X[indexes]
+            y_probs_batch = y_probs[indexes]
+            y_value_batch = y_value[indexes]
+            
+            losses = self.train_batch(X_batch, y_probs_batch, y_value_batch)
             history.append(losses)
         
         # save the new model
@@ -87,12 +92,22 @@ if __name__ == "__main__":
     model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
     trainer = Trainer(model=model)
 
-    files = os.listdir(config.MEMORY_DIR)
+    folder = config.MEMORY_DIR
+    files = os.listdir(folder + "/")
     data = []
-    print(f"Loading all games in {config.MEMORY_DIR}...")
+    print(f"Loading all games in {folder}...")
     for file in files:
-        data.append(np.load(f"{config.MEMORY_DIR}/{file}", allow_pickle=True))
+        # # if file is a folder
+        if os.path.isdir(os.path.join(folder, file)):
+            continue
+        data.append(np.load(f"{folder}/{file}", allow_pickle=True))
     data = np.concatenate(data)
+    # count where third field is 0
+    print(f"{len(data[data[:,2] == 1])} games won by white")
+    print(f"{len(data[data[:,2] == -1])} games won by black")
+    print(f"{len(data[data[:,2] == 0])} games drawn")
+    # delete drawn games
+    data = data[data[:,2] != 0]
     print(f"Training with {len(data)} positions")
     history = trainer.train_model(data)
     # plot history

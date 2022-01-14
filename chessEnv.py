@@ -76,6 +76,42 @@ class ChessEnv:
         del board
         return r
 
+    @staticmethod
+    def estimate_winner(board: chess.Board) -> int:
+        """
+        Estimate the winner of the current node.
+        Pawn = 1, Bishop = 3, Rook = 5, Queen = 9
+        Positive score = white wins, negative score = black wins
+        """
+        score = 0
+        piece_scores = {
+            chess.PAWN: 1,
+            chess.KNIGHT: 3,
+            chess.BISHOP: 3,
+            chess.ROOK: 5,
+            chess.QUEEN: 9,
+            chess.KING: 0
+        }
+        for piece in board.piece_map().values():
+            if piece.color == chess.WHITE:
+                score += piece_scores[piece.piece_type]
+            else:
+                score -= piece_scores[piece.piece_type]
+        if np.abs(score) > 1:
+            if score > 0:
+                logging.debug("White wins")
+                return 1
+            else:
+                logging.debug("Black wins")
+                return -1
+        else:
+            logging.debug("Draw")
+            return 0
+
+    @staticmethod
+    def get_piece_amount(board: chess.Board) -> int:
+        return len(board.piece_map().values())
+
     def __str__(self):
         """
         Print the board

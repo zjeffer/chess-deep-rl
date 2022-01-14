@@ -1,14 +1,15 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 800
+SIMULATIONS_PER_MOVE = 500
 
 # exploration parameters 
 # TODO: change these values
-C_base = 5 # defines how CPUCT grows
-C_init = 3 
+C_base = 20000 # defines how CPUCT grows
+C_init = 2
 
 MAX_PUZZLE_MOVES = 4
+MAX_GAME_MOVES = 100
 
 # ============= NEURAL NETWORK INPUTS =============
 # 2 players, 6 pieces, 8x8 board
@@ -38,7 +39,7 @@ OUTPUT_SHAPE = (8*8*amount_of_planes, 1)
 
 # ============= NEURAL NETWORK PARAMETERS =============
 # TODO: change if necessary. AZ started with 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
-LEARNING_RATE = 0.02
+LEARNING_RATE = 0.002
 # filters for the convolutional layers (AZ: 256)
 CONVOLUTION_FILTERS = 256
 # amount of hidden residual layers
@@ -52,7 +53,6 @@ MODEL_FOLDER = './models/'
 
 # ============= TRAINING PARAMETERS =============
 BATCH_SIZE = 256
-EPOCHS = 1
 LOSS_PLOTS_FOLDER="./plots"
 
 # ============= MEMORY CONFIGURATION =============

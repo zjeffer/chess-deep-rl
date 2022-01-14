@@ -71,24 +71,3 @@ class Node:
             children.extend(edge.output_node.get_all_children())
         return children
 
-    def estimate_score(self) -> int:
-        """
-        Estimate the score of the current node.
-        Pawn = 1, Bishop = 3, Rook = 5, Queen = 9
-        Positive score = white wins, negative score = black wins
-        """
-        score = 0
-        piece_scores = {
-            chess.PAWN: 1,
-            chess.KNIGHT: 3,
-            chess.BISHOP: 3,
-            chess.ROOK: 5,
-            chess.QUEEN: 9,
-            chess.KING: 0
-        }
-        for piece in self.state.piece_map().values():
-            if piece.color == chess.WHITE:
-                score += piece_scores[piece.piece_type]
-            else:
-                score -= piece_scores[piece.piece_type]
-        return score

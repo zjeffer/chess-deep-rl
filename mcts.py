@@ -217,23 +217,6 @@ class MCTS:
             edge.W += value
         return end_node
 
-    @staticmethod
-    def get_piece_amount(board: chess.Board) -> int:
-        return len(board.piece_map().values())
-
-    def estimate_winner(self, node: Node) -> int:
-        score = node.estimate_score()
-        if np.abs(score) > 1:
-            if score > 0:
-                logging.debug("White wins")
-                return 1
-            else:
-                logging.debug("Black wins")
-                return -1
-        else:
-            logging.debug("Draw")
-            return 0
-
     def plot_node(self, dot: Digraph, node: Node):
         dot.node(f"{node.state}", f"N")
         for edge in node.edges:

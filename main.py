@@ -30,16 +30,31 @@ class Game:
     def get_winner(result: str) -> int:
         return 1 if result == "1-0" else - 1 if result == "0-1" else 0
 
+
     @utils.timer_function
     def play_one_game(self, stochastic: bool = True) -> int:
+        # reset everything
         self.reset()
+        # add a new memory entry
         self.memory.append([])
+        # show the board
         print(self.env.board)
+        # counter to check amount of moves played. if above limit, estimate winner
+        counter, full_game = 0, True
         while not self.env.board.is_game_over():
             self.play_move(stochastic=stochastic)
-        print(f"Game over. Result: {self.env.board.result()}")
+            counter += 1
+            if counter > config.MAX_GAME_MOVES:
+                # estimate the winner based on piece values
+                winner = ChessEnv.estimate_winner(self.env.board)
+                print(f"Game over by move limit ({config.MAX_GAME_MOVES}). Result: {winner}")
+                full_game = False
+                break
+        if full_game:
+            # get the winner based on the result of the game
+            winner = Game.get_winner(self.env.board.result())
+            print(f"Game over. Result: {winner}")
         # save game result to memory for all games
-        winner = Game.get_winner(self.env.board.result())
         for index, element in enumerate(self.memory[-1]):
             self.memory[-1][index] = (element[0], element[1], winner)
 
@@ -103,7 +118,6 @@ class Game:
         # winner gets added after game is over
         self.memory[-1].append((state, search_probabilities, None))
 
-    @utils.timer_function
     def save_game(self, name: str = "game") -> None:
         # the game id consist of game + datetime
         game_id = f"{name}-{str(uuid.uuid4())[:8]}"
@@ -161,6 +175,17 @@ class Game:
             # save memory to file
             self.save_game(name="puzzle")
 
+    def create_puzzle_set(self, filename: str):
+        puzzles = pd.read_csv(filename, header=None)
+        # shuffle pandas rows
+        puzzles = puzzles.sample(frac=1).reset_index(drop=True)
+        # drop unnecessary columns
+        puzzles = puzzles.drop(columns=[0, 4, 5, 6, 8])
+        # set column names
+        puzzles.columns = ["fen", "moves", "rating", "type"]
+        # only keep puzzles where type contains "mate"
+        puzzles = puzzles[puzzles["type"].str.contains("mateIn2")]
+        game.train_puzzles(puzzles)
 
     def create_training_set(self):
         counter = {"white": 0, "black": 0, "draw": 0}
@@ -178,21 +203,14 @@ class Game:
 
 if __name__ == "__main__":
     model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
-    white = Agent()
-    black = Agent()
+    white = Agent(model_path)
+    black = Agent(model_path)
 
     # test with a mate in 1 game (black to play)
     # env = ChessEnv("5K2/r1r5/p2p4/k1pP4/2P5/8/8/8 b - - 1 2")
 
     env = ChessEnv()
     game = Game(env=env, white=white, black=black)
-    # game.create_training_set()
-
-    puzzles = pd.read_csv("puzzles/lichess_db_puzzle.csv", header=None)
-    # drop unnecessary columns
-    puzzles = puzzles.drop(columns=[0, 4, 5, 6, 8])
-    # set column names
-    puzzles.columns = ["fen", "moves", "rating", "type"]
-    # only keep puzzles where type contains "mate"
-    puzzles = puzzles[puzzles["type"].str.contains("mateIn1")]
-    game.train_puzzles(puzzles)
+    game.create_training_set()
+    # game.create_puzzle_set(filename="puzzles/lichess_db_puzzle.csv")
+    
