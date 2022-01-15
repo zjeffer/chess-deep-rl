@@ -1,7 +1,8 @@
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Activation, Dense, Dropout, Flatten, Conv2D, BatchNormalization, LeakyReLU, Input
-from tensorflow.keras.optimizers import Adam
+#from tensorflow.keras.optimizers import Adam
+from keras.optimizer_v2 import adam
 from keras.layers import add as add_layer
 from keras.models import Model
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
@@ -68,7 +69,7 @@ class RLModelBuilder:
                 'policy_head': 'categorical_crossentropy',
                 'value_head': 'mean_squared_error'
             },
-            optimizer=Adam(learning_rate=config.LEARNING_RATE),
+            optimizer=adam.Adam(learning_rate=config.LEARNING_RATE),
             # TODO: change loss weights
             loss_weights={
                 'policy_head': 0.5,

@@ -51,7 +51,7 @@ class Node:
         """
         return self.N == 0
 
-    def add_child(self, child: "Node", action: Move, prior: float) -> Edge:
+    def add_child(self, child, action: Move, prior: float) -> Edge:
         """
         Add a child node to the current node.
 
@@ -61,7 +61,7 @@ class Node:
         self.edges.append(edge)
         return edge
 
-    def get_all_children(self) -> list["Node"]:
+    def get_all_children(self):
         """
         Get all children of the current node and their children, recursively
         """
