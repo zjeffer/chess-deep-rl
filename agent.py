@@ -14,9 +14,12 @@ class Agent:
     def __init__(self, model_path: str = None):
         self.MAX_REPLAY_MEMORY = config.MAX_REPLAY_MEMORY
         
-        cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='local')
-        tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
-        self.strategy = tf.distribute.TPUStrategy(cluster_resolver)
+        try: 
+            cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='local')
+            tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
+            self.strategy = tf.distribute.TPUStrategy(cluster_resolver)
+        except:
+            print("Not running on TPU, continuing...")
 
         if model_path is None:
             self.model: Model = self.build_model()
@@ -61,7 +64,9 @@ class Agent:
 
     @tf.function
     def predict(self, args):
-        return self.strategy.run(self.pred_fn, args=(args,))
+        if hasattr(self, 'strategy'):
+            return self.strategy.run(self.pred_fn, args=(args,))
+        return self.model(args)
 
     def pred_fn(self, args):
         return self.model(args)

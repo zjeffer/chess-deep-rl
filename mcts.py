@@ -101,7 +101,7 @@ class MCTS:
         row = from_square % 8
         col = 7 - (from_square // 8)
         self.outputs.append((move, plane_index, row, col))
-
+    
     def probabilities_to_actions(self, probabilities: list, board: str) -> dict:
         """
         Map the output vector of 4672 probabilities to moves. Returns a dictionary of moves and their probabilities.
@@ -155,7 +155,6 @@ class MCTS:
 
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "filtered")
         return actions
-
 
     def expand(self, leaf: Node) -> Node:
         """

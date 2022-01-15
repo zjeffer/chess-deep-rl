@@ -97,7 +97,7 @@ if __name__ == "__main__":
     data = []
     print(f"Loading all games in {folder}...")
     for file in files:
-        # # if file is a folder
+        # # if file is a folder, skip it
         if os.path.isdir(os.path.join(folder, file)):
             continue
         data.append(np.load(f"{folder}/{file}", allow_pickle=True))
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     print(f"{len(data[data[:,2] == -1])} games won by black")
     print(f"{len(data[data[:,2] == 0])} games drawn")
     # delete drawn games
-    data = data[data[:,2] != 0]
+    # data = data[data[:,2] != 0]
     print(f"Training with {len(data)} positions")
     history = trainer.train_model(data)
     # plot history

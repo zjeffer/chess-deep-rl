@@ -64,7 +64,6 @@ class Game:
         # add moves
         node = game.add_variation(self.env.board.move_stack[0])
         for move in self.env.board.move_stack[1:]:
-            print(move)
             node = node.add_variation(move)
         # print pgn
         print(game)
@@ -202,9 +201,9 @@ class Game:
 
 
 if __name__ == "__main__":
-    #model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
-    white = Agent()
-    black = Agent()
+    model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
+    white = Agent(model_path)
+    black = Agent(model_path)
 
     # test with a mate in 1 game (black to play)
     # env = ChessEnv("5K2/r1r5/p2p4/k1pP4/2P5/8/8/8 b - - 1 2")
