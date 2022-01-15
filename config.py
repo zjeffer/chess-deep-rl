@@ -17,7 +17,7 @@ n = 8  # board size
 # non boolean values: pieces for every player + the square for en passant
 # boolean values: side to move, castling rights for every side and every player, is repitition
 amount_of_input_planes =  (2*6 + 1) + (1 + 4 + 1)
-INPUT_SHAPE = (n, n, amount_of_input_planes)
+INPUT_SHAPE = (amount_of_input_planes, n, n)
 
 # ============= NEURAL NETWORK OUTPUTS =============
 # the model has 2 outputs: policy and value

@@ -11,6 +11,9 @@ import numpy as np
 import os
 import utils
 import pandas as pd
+import tensorflow as tf
+
+from tensorflow.python.framework.ops import disable_eager_execution
 
 class Game:
     def __init__(self, env: ChessEnv, white: Agent, black: Agent):
@@ -202,10 +205,16 @@ class Game:
 
 
 if __name__ == "__main__":
-    #model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
-    white = Agent()
-    black = Agent()
+    model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
 
+    cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='local')
+    tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
+    strategy_1 = tf.distribute.OneDeviceStrategy(device="/TPU:0")
+    strategy_2 = tf.distribute.OneDeviceStrategy(device="/TPU:1")
+
+    white = Agent(model_path, strategy_1)
+    black = Agent(model_path, strategy_2)
+    
     # test with a mate in 1 game (black to play)
     # env = ChessEnv("5K2/r1r5/p2p4/k1pP4/2P5/8/8/8 b - - 1 2")
 

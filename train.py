@@ -6,8 +6,8 @@ import numpy as np
 from chessEnv import ChessEnv
 import config
 import tensorflow as tf
-from keras.models import Model
-from keras.models import load_model, save_model
+from tensorflow.keras.models import Model
+from tensorflow.keras.models import load_model, save_model
 from matplotlib import pyplot as plt
 import pandas as pd
 import uuid
@@ -89,7 +89,11 @@ class Trainer:
 
 if __name__ == "__main__":
     # model = load_model(os.path.join(config.MODEL_FOLDER, "model.h5"))
-    model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
+    strategy = tf.distribute.MultiWorkerMirroredStrategy()
+    with strategy.scope():
+        model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
+        save_model(model, 'models/model.h5')
+    exit(0)
     trainer = Trainer(model=model)
 
     folder = config.MEMORY_DIR
@@ -107,7 +111,7 @@ if __name__ == "__main__":
     print(f"{len(data[data[:,2] == -1])} games won by black")
     print(f"{len(data[data[:,2] == 0])} games drawn")
     # delete drawn games
-    data = data[data[:,2] != 0]
+    # data = data[data[:,2] != 0]
     print(f"Training with {len(data)} positions")
     history = trainer.train_model(data)
     # plot history

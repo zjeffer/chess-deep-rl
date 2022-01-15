@@ -2,21 +2,18 @@ from tensorflow.python.types.core import ConcreteFunction
 from chessEnv import ChessEnv
 from rlmodelbuilder import RLModelBuilder
 import config
-from keras.models import Model
+from tensorflow.keras.models import Model, load_model
 import time
 import tensorflow as tf
 import utils
 from tqdm import tqdm
 from mcts import MCTS
-from keras.models import load_model
 
 class Agent:
-    def __init__(self, model_path: str = None):
+    def __init__(self, model_path: str = None, strategy = None):
         self.MAX_REPLAY_MEMORY = config.MAX_REPLAY_MEMORY
-        
-        cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='local')
-        tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
-        self.strategy = tf.distribute.TPUStrategy(cluster_resolver)
+
+        self.strategy = strategy
 
         if model_path is None:
             self.model: Model = self.build_model()
@@ -63,5 +60,6 @@ class Agent:
     def predict(self, args):
         return self.strategy.run(self.pred_fn, args=(args,))
 
+    @tf.function
     def pred_fn(self, args):
         return self.model(args)

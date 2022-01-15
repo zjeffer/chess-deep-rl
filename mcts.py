@@ -11,6 +11,7 @@ import time
 from tqdm import tqdm
 import utils
 import threading
+import tensorflow as tf
 
 # graphing mcts
 from graphviz import Digraph
@@ -23,7 +24,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 np_config.enable_numpy_behavior()
-
+from tensorflow.python.framework.ops import disable_eager_execution
 
 class MCTS:
     def __init__(self, agent: "Agent", state: str = chess.STARTING_FEN):
@@ -60,6 +61,8 @@ class MCTS:
             if not len(node.edges):
                 # if the node is terminal, return the node
                 return node
+            print(node.edges[0])
+            print(type(node.edges[0]))
             best_edge: Edge = max(node.edges, key=lambda edge: edge.upper_confidence_bound())
             # get that actions's new node
             node = best_edge.output_node
@@ -118,7 +121,7 @@ class MCTS:
         """
         probabilities = probabilities.reshape(
             config.amount_of_planes, config.n, config.n)
-        mask = np.zeros((config.amount_of_planes, config.n, config.n))
+        # mask = np.zeros((config.amount_of_planes, config.n, config.n))
 
         actions = {}
 
@@ -142,16 +145,17 @@ class MCTS:
         for thread in threads:
             thread.join()
 
-        probabilities = probabilities.numpy()
+        # probabilities = probabilities.numpy()
         for move, plane_index, col, row in self.outputs:
-            mask[plane_index][col][row] = 1
+            # mask[plane_index][col][row] = 1
             actions[move.uci()] = probabilities[plane_index][col][row]
 
         # utils.save_output_state_to_imgs(mask, "tests/output_planes", "mask")
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "unfiltered")
 
         # use the mask to filter the probabilities
-        probabilities = np.multiply(probabilities, mask)
+        # mask = tf.convert_to_tensor(mask)
+        # probabilities = tf.multiply(probabilities, mask)
 
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "filtered")
         return actions
@@ -183,26 +187,33 @@ class MCTS:
         # predict p and v
         # p = array of probabilities: [0, 1] for every move (including invalid moves)
         # v = [-1, 1]
-        input_state = ChessEnv.state_to_input(leaf.state)
-        p, v = self.agent.predict(input_state)
+        with self.agent.strategy.scope():
+            input_state = tf.convert_to_tensor(ChessEnv.state_to_input(leaf.state), dtype=bool)
+            start_time = time.time()
+            p, v = self.agent.predict(input_state)
+            print(f"Time to predict: {time.time() - start_time}")
+            # print(p)
+            # p = p.values[0]
+            # v = v.values[0]
+            p, v = p[0], v[0][0]
+            actions = self.probabilities_to_actions(p, leaf.state)
+            
+            # map probabilities to moves, this also filters out invalid moves
+            # returns a dictionary of moves and their probabilities
+            
+            logging.debug(f"Model predictions: {p}")
+            logging.debug(f"Value of state: {v}")
 
-        # map probabilities to moves, this also filters out invalid moves
-        # returns a dictionary of moves and their probabilities
-        p, v = p[0], v[0][0].numpy()
-        actions = self.probabilities_to_actions(p, leaf.state)
+            leaf.value = v  
 
-        logging.debug(f"Model predictions: {p}")
-        logging.debug(f"Value of state: {v}")
-
-        leaf.value = v
-
-        # create a child node for every action
-        for action in possible_actions:
-            # make the move and get the new board
-            new_state = leaf.step(action)
-            # add a new child node with the new board, the action taken and its prior probability
-            leaf.add_child(Node(new_state), action, actions[action.uci()])
-        return leaf
+            
+            # create a child node for every action
+            for action in possible_actions:
+                # make the move and get the new board
+                new_state = leaf.step(action)
+                # add a new child node with the new board, the action taken and its prior probability
+                leaf.add_child(Node(new_state), action, actions[action.uci()])
+            return leaf
 
     def backpropagate(self, end_node: Node, value: float) -> Node:
         logging.debug("Backpropagation...")
