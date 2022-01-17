@@ -11,6 +11,7 @@ import time
 from tqdm import tqdm
 import utils
 import threading
+import tensorflow as tf
 
 # graphing mcts
 from graphviz import Digraph
@@ -118,7 +119,7 @@ class MCTS:
         """
         probabilities = probabilities.reshape(
             config.amount_of_planes, config.n, config.n)
-        mask = np.zeros((config.amount_of_planes, config.n, config.n))
+        # mask = np.zeros((config.amount_of_planes, config.n, config.n))
 
         actions = {}
 
@@ -144,14 +145,14 @@ class MCTS:
 
         probabilities = probabilities.numpy()
         for move, plane_index, col, row in self.outputs:
-            mask[plane_index][col][row] = 1
+            # mask[plane_index][col][row] = 1
             actions[move.uci()] = probabilities[plane_index][col][row]
 
         # utils.save_output_state_to_imgs(mask, "tests/output_planes", "mask")
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "unfiltered")
 
         # use the mask to filter the probabilities
-        probabilities = np.multiply(probabilities, mask)
+        # probabilities = np.multiply(probabilities, mask)
 
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "filtered")
         return actions
@@ -182,12 +183,12 @@ class MCTS:
         # predict p and v
         # p = array of probabilities: [0, 1] for every move (including invalid moves)
         # v = [-1, 1]
-        input_state = ChessEnv.state_to_input(leaf.state)
+        input_state = tf.convert_to_tensor(ChessEnv.state_to_input(leaf.state), dtype=bool)
         p, v = self.agent.predict(input_state)
 
         # map probabilities to moves, this also filters out invalid moves
         # returns a dictionary of moves and their probabilities
-        p, v = p[0], v[0][0].numpy()
+        p, v = p[0], v[0][0]
         actions = self.probabilities_to_actions(p, leaf.state)
 
         logging.debug(f"Model predictions: {p}")
@@ -205,11 +206,7 @@ class MCTS:
 
     def backpropagate(self, end_node: Node, value: float) -> Node:
         logging.debug("Backpropagation...")
-
-        # print(self.game_path)
-        # print(f"Game path length: {len(self.game_path)}")
-        self.game_path.reverse()
-
+        
         for edge in self.game_path:
             edge.input_node.N += 1
             edge.N += 1

@@ -1,6 +1,6 @@
 __pycache__
 *.gv
-models/
-memory/
-plots/
-puzzles/
+models/[^.]*
+memory/[^.]*
+plots/[^.]*
+puzzles/[^.]*

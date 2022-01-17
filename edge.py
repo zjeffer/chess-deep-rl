@@ -19,7 +19,7 @@ class Edge:
 
     def __eq__(self, edge: object) -> bool:
         if isinstance(edge, Edge):
-            return self.action == edge.action
+            return self.action == edge.action and self.input_node.state == edge.input_node.state
         else:
             return NotImplemented
 

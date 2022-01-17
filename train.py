@@ -59,7 +59,7 @@ class Trainer:
         """
         history = []
         X, (y_probs, y_value) = self.split_Xy(data)
-        for _ in tqdm(range(int(len(data)/5))):
+        for _ in tqdm(range(int(len(data)/10))):
             indexes = np.random.choice(len(data), size=self.batch_size, replace=True)
             # only select X values with these indexes
             X_batch = X[indexes]
@@ -88,8 +88,8 @@ class Trainer:
         del df
 
 if __name__ == "__main__":
-    # model = load_model(os.path.join(config.MODEL_FOLDER, "model.h5"))
-    model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
+    model = load_model(os.path.join(config.MODEL_FOLDER, "model_2.h5"))
+    # model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
     trainer = Trainer(model=model)
 
     folder = config.MEMORY_DIR

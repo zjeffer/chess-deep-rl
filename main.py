@@ -3,6 +3,7 @@ from re import search
 import uuid
 from agent import Agent
 from chessEnv import ChessEnv
+from edge import Edge
 from mcts import MCTS
 import config
 import chess
@@ -40,9 +41,11 @@ class Game:
         # show the board
         print(self.env.board)
         # counter to check amount of moves played. if above limit, estimate winner
-        counter, full_game = 0, True
+        counter, previous_edges, full_game = 0, (None, None), True
         while not self.env.board.is_game_over():
-            self.play_move(stochastic=stochastic)
+            # play one move (previous move is used for updating the MCTS tree)
+            previous_edges = self.play_move(stochastic=stochastic, previous_moves=previous_edges)
+            # end if the game drags on too long
             counter += 1
             if counter > config.MAX_GAME_MOVES:
                 # estimate the winner based on piece values
@@ -73,17 +76,31 @@ class Game:
 
         return winner
 
-    def play_move(self, stochastic: bool = True) -> None:
+    def play_move(self, stochastic: bool = True, previous_moves: tuple[Edge, Edge] = (None, None)) -> None:
+        """
+        Play one move. If stochastic is True, the move is chosen using a probability distribution.
+        Otherwise, the move is chosen based on the highest N (deterministically).
+        The previous moves are used to reuse the MCTS tree (if possible): the root node is set to the
+        node found after playing the previous moves in the current tree.
+        """
         # whose turn is it
         current_player = self.white if self.turn else self.black
 
-        # create tree with root node == current board
-        current_player.mcts = MCTS(
-            current_player, state=self.env.board.fen())
+        if previous_moves[0] is None or previous_moves[1] is None:
+            # create new tree with root node == current board
+            current_player.mcts = MCTS(current_player, state=self.env.board.fen())
+        else:   
+            # change the root node to the node after playing the two previous moves
+            try:
+                node = current_player.mcts.root.get_edge(previous_moves[0].action).output_node
+                node = node.get_edge(previous_moves[1].action).output_node
+                current_player.mcts.root = node
+            except AttributeError:
+                print("WARN: Node does not exist in tree, continuing with new tree...")
+                current_player.mcts = MCTS(current_player, state=self.env.board.fen())
         # play n simulations from the root node
         current_player.run_simulations(n=config.SIMULATIONS_PER_MOVE)
 
-        # print(f"Amount of children in tree: {len(current_player.mcts.root.get_all_children())}")
         moves = current_player.mcts.root.edges
 
         # TODO: check if storing input state is faster/less space-consuming than storing the fen string
@@ -91,11 +108,12 @@ class Game:
 
         sum_move_visits = sum(e.N for e in moves)
         probs = [e.N / sum_move_visits for e in moves]
-        if stochastic:
-            # stochastically choose the best move
+        
+        # added epsilon to avoid choosing random moves too many times
+        if stochastic and np.random.random() < config.EPSILON:
+            # choose a move based on a probability distribution
             best_move = np.random.choice(moves, p=probs)
         else:
-            # choose the move based on the highest visit count
             best_move = moves[np.argmax(probs)]
 
         # play the move
@@ -108,6 +126,9 @@ class Game:
 
         # switch turn
         self.turn = not self.turn
+
+        # return the previous move and the new move
+        return (previous_moves[1], best_move)
 
     def save_to_memory(self, state, moves) -> None:
         sum_move_visits = sum(e.N for e in moves)
@@ -143,10 +164,10 @@ class Game:
             print(self.env.board)
             print(f"Correct solution: {moves} ({len(moves)} moves)")
             self.memory.append([])
-            counter, solved = 0, True
+            counter, best_edge = 0, None
             while not self.env.board.is_game_over():
                 # deterministically choose the next move (we want no exploration here)
-                self.play_move(stochastic=False)
+                best_edge = self.play_move(stochastic=False, previous_move=best_edge)
                 counter += 1
                 if counter > config.MAX_PUZZLE_MOVES:
                     print("Puzzle could not be solved within the move limit")
@@ -209,6 +230,7 @@ if __name__ == "__main__":
     # env = ChessEnv("5K2/r1r5/p2p4/k1pP4/2P5/8/8/8 b - - 1 2")
 
     env = ChessEnv()
+
     game = Game(env=env, white=white, black=black)
     game.create_training_set()
     # game.create_puzzle_set(filename="puzzles/lichess_db_puzzle.csv")

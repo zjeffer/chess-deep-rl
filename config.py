@@ -1,13 +1,17 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 500
+SIMULATIONS_PER_MOVE = 300
 
 # exploration parameters 
 # TODO: change these values
 C_base = 20000 # defines how CPUCT grows
 C_init = 2
 
+# if stochastic, use epsilon-greedy to sometimes pick moves from the prob dist
+EPSILON = 0.2
+
+# limit the amount of moves played in a game
 MAX_PUZZLE_MOVES = 4
 MAX_GAME_MOVES = 100
 
@@ -52,7 +56,7 @@ AMOUNT_OF_RESIDUAL_BLOCKS = 19
 MODEL_FOLDER = './models/'
 
 # ============= TRAINING PARAMETERS =============
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 LOSS_PLOTS_FOLDER="./plots"
 
 # ============= MEMORY CONFIGURATION =============
