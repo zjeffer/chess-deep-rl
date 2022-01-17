@@ -232,7 +232,7 @@ class Game:
         return np.array(response["prediction"]).shape, type(response["value"])
 
 
-def multiprocessed_self_play():
+def multiprocessed_self_play(_ = None):
     model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
     white = Agent(model_path)
     black = Agent(model_path)
@@ -249,7 +249,9 @@ def multiprocessed_self_play():
 
 
 if __name__ == "__main__":
-    print(multiprocessed_self_play())
+    p_count = 8
+    with Pool(processes=p_count) as pool:
+        pool.map(multiprocessed_self_play, [None for _ in range(p_count)])
 
 
     
