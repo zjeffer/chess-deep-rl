@@ -74,7 +74,7 @@ class ChessEnv:
                      counter, *arrays, en_passant]).reshape((1, *config.INPUT_SHAPE))
         # memory management
         del board
-        return r
+        return r.astype(bool)
 
     @staticmethod
     def estimate_winner(board: chess.Board) -> int:

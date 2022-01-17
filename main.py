@@ -225,9 +225,6 @@ class Game:
         import requests
 
         input_state: np.ndarray = ChessEnv.state_to_input(self.env.board.fen())
-        # change input_state type to bool
-        input_state = input_state.astype(bool)
-        # send request
         url = "http://localhost:5000/predict"
         data = {"data": base64.b64encode(input_state.tobytes()).decode("utf-8")}
         response = requests.post(url, json=data)

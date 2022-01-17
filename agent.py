@@ -61,9 +61,9 @@ class Agent:
             self.model.save(f"{config.MODEL_FOLDER}/model.h5")
 
     def predict(self, data):
-        data = {"data": base64.b64encode(data).decode("utf-8")}
-        response = json.loads(requests.post(url, json=data).text)
-        return np.array(response["prediction"]), response["value"]
+        data = {"data": base64.b64encode(data.tobytes()).decode("utf-8")}
+        r = json.loads(requests.post(url, json=data).text)
+        return np.array(r["prediction"]), r["value"]
 
     # @tf.function
     # def predict(self, args):

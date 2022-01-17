@@ -1,8 +1,6 @@
 # implement the Monte Carlo Tree Search algorithm
-from tensorflow.python.ops.numpy_ops import np_config
 import chess
 import chess.pgn
-from tensorflow.python.ops.numpy_ops.np_math_ops import positive
 from chessEnv import ChessEnv
 from node import Node
 from edge import Edge
@@ -11,7 +9,7 @@ import time
 from tqdm import tqdm
 import utils
 import threading
-import tensorflow as tf
+# import tensorflow as tf
 
 # graphing mcts
 from graphviz import Digraph
@@ -23,7 +21,6 @@ from mapper import Mapping
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-np_config.enable_numpy_behavior()
 
 
 class MCTS:
@@ -183,7 +180,7 @@ class MCTS:
         # predict p and v
         # p = array of probabilities: [0, 1] for every move (including invalid moves)
         # v = [-1, 1]
-        input_state = tf.convert_to_tensor(ChessEnv.state_to_input(leaf.state), dtype=bool)
+        input_state = ChessEnv.state_to_input(leaf.state)
         p, v = self.agent.predict(input_state)
 
         # map probabilities to moves, this also filters out invalid moves
