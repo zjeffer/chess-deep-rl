@@ -1,5 +1,6 @@
-from email import header
-from re import search
+import base64
+import json
+from multiprocessing import Pool
 import uuid
 from agent import Agent
 from chessEnv import ChessEnv
@@ -210,7 +211,7 @@ class Game:
     def create_training_set(self):
         counter = {"white": 0, "black": 0, "draw": 0}
         while True:
-            winner = game.play_one_game(stochastic=True)
+            winner = self.play_one_game(stochastic=True)
             if winner == 1:
                 counter["white"] += 1
             elif winner == -1:
@@ -219,9 +220,22 @@ class Game:
                 counter["draw"] += 1
             print(
                 f"Game results: {counter['white']} - {counter['black']} - {counter['draw']}")
+    
+    def test(self):
+        import requests
+
+        input_state: np.ndarray = ChessEnv.state_to_input(self.env.board.fen())
+        # change input_state type to bool
+        input_state = input_state.astype(bool)
+        # send request
+        url = "http://localhost:5000/predict"
+        data = {"data": base64.b64encode(input_state.tobytes()).decode("utf-8")}
+        response = requests.post(url, json=data)
+        response = json.loads(response.text)
+        return np.array(response["prediction"]).shape, type(response["value"])
 
 
-if __name__ == "__main__":
+def multiprocessed_self_play():
     model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
     white = Agent(model_path)
     black = Agent(model_path)
@@ -232,6 +246,14 @@ if __name__ == "__main__":
     env = ChessEnv()
 
     game = Game(env=env, white=white, black=black)
-    game.create_training_set()
+    return game.play_one_game(stochastic=True)
+    # return game.test()
     # game.create_puzzle_set(filename="puzzles/lichess_db_puzzle.csv")
+
+
+if __name__ == "__main__":
+    print(multiprocessed_self_play())
+
+
+    
     

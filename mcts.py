@@ -143,7 +143,7 @@ class MCTS:
         for thread in threads:
             thread.join()
 
-        probabilities = probabilities.numpy()
+        # probabilities = probabilities.numpy()
         for move, plane_index, col, row in self.outputs:
             # mask[plane_index][col][row] = 1
             actions[move.uci()] = probabilities[plane_index][col][row]
@@ -188,7 +188,7 @@ class MCTS:
 
         # map probabilities to moves, this also filters out invalid moves
         # returns a dictionary of moves and their probabilities
-        p, v = p[0], v[0][0]
+        # p, v = p[0], v[0][0]
         actions = self.probabilities_to_actions(p, leaf.state)
 
         logging.debug(f"Model predictions: {p}")

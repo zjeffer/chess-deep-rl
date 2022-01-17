@@ -1,30 +1,28 @@
-from tensorflow.python.types.core import ConcreteFunction
-from chessEnv import ChessEnv
+import base64
 from rlmodelbuilder import RLModelBuilder
 import config
 from keras.models import Model
 import time
-import tensorflow as tf
+# import tensorflow as tf
 import utils
 from tqdm import tqdm
 from mcts import MCTS
-from keras.models import load_model
+# from tensorflow.keras.models import load_model
+import requests
+import json
+import numpy as np
+
+url = "http://localhost:5000/predict"
 
 class Agent:
     def __init__(self, model_path: str = None):
         self.MAX_REPLAY_MEMORY = config.MAX_REPLAY_MEMORY
-        
-        try: 
-            cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='local')
-            tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
-            self.strategy = tf.distribute.TPUStrategy(cluster_resolver)
-        except:
-            print("Not running on TPU, continuing...")
 
         if model_path is None:
             self.model: Model = self.build_model()
         else:
-            self.model = load_model(model_path)
+            #self.model = load_model(model_path)
+            pass
 
         self.mcts = MCTS(self)
 
@@ -62,11 +60,16 @@ class Agent:
         else:
             self.model.save(f"{config.MODEL_FOLDER}/model.h5")
 
-    @tf.function
-    def predict(self, args):
-        if hasattr(self, 'strategy'):
-            return self.strategy.run(self.pred_fn, args=(args,))
-        return self.model(args)
+    def predict(self, data):
+        data = {"data": base64.b64encode(data).decode("utf-8")}
+        response = json.loads(requests.post(url, json=data).text)
+        return np.array(response["prediction"]), response["value"]
 
-    def pred_fn(self, args):
-        return self.model(args)
+    # @tf.function
+    # def predict(self, args):
+    #     if hasattr(self, 'strategy'):
+    #         return self.strategy.run(self.pred_fn, args=(args,))
+    #     return self.model(args)
+
+    # def pred_fn(self, args):
+    #     return self.model(args)
