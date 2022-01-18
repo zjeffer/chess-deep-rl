@@ -2,7 +2,7 @@ from agent import Agent
 from chessEnv import ChessEnv
 import utils
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format=' %(message)s')
 import numpy as np
 
 

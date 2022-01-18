@@ -6,7 +6,8 @@ import numpy as np
 
 import time
 import logging
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
 
 class ChessEnv:

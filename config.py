@@ -8,8 +8,8 @@ SIMULATIONS_PER_MOVE = 400
 C_base = 20000 # defines how CPUCT grows
 C_init = 2
 
-# if stochastic, use epsilon-greedy to sometimes pick moves from the prob dist
-EPSILON = 0.7
+# if stochastic, use epsilon-greedy to only sometimes pick moves from the prob dist
+EPSILON = 0.8
 
 # limit the amount of moves played in a game
 MAX_PUZZLE_MOVES = 4

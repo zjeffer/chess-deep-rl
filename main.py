@@ -1,8 +1,8 @@
-import base64
 import json
 import logging
 from multiprocessing import Pool
 import socket
+import time
 import uuid
 from agent import Agent
 from chessEnv import ChessEnv
@@ -18,7 +18,7 @@ import pandas as pd
 from tqdm import tqdm
 
 # set logging config
-logging.basicConfig(level=logging.ERROR, format=' %(message)s')
+logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
 
 class Game:
@@ -122,6 +122,7 @@ class Game:
             # choose a move based on a probability distribution
             best_move = np.random.choice(moves, p=probs)
         else:
+            # choose a move based on the highest N
             best_move = moves[np.argmax(probs)]
 
         # play the move
@@ -153,7 +154,6 @@ class Game:
             # if the game result was not estimated, save the game id to a seperate file (to look at later)
             with open("full_games.txt", "a") as f:
                 f.write(f"{game_id}.npy\n")
-        # 
         np.save(os.path.join(config.MEMORY_DIR, game_id), self.memory[-1])
         logging.info(
             f"Game saved to {os.path.join(config.MEMORY_DIR, game_id)}.npy")
@@ -263,16 +263,19 @@ class Game:
 
 
 def multiprocessed_self_play(_ = None):
+    # set different random seeds for each process
+    np.random.seed((os.getpid() * int(time.time())) % 123456789)
+
+    # create agents
     model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
     white = Agent(model_path)
     black = Agent(model_path)
 
-    # test with a mate in 1 game (black to play)
-    # env = ChessEnv("5K2/r1r5/p2p4/k1pP4/2P5/8/8/8 b - - 1 2")
-
+    # create environment and game
     env = ChessEnv()
-
     game = Game(env=env, white=white, black=black)
+
+    # play games continuously
     while True:
         game.play_one_game(stochastic=True)
     # return Game.test()

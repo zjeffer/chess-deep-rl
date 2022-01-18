@@ -12,7 +12,7 @@ import utils
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
 model = load_model(config.MODEL_FOLDER + "/model.h5")
 

@@ -19,7 +19,7 @@ import config
 from mapper import Mapping
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
 
 

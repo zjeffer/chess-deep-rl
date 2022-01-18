@@ -14,7 +14,7 @@ import requests
 import json
 import numpy as np
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
 url = "http://localhost:5000/predict"
 
