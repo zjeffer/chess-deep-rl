@@ -1,4 +1,6 @@
 import base64
+import logging
+import socket
 from rlmodelbuilder import RLModelBuilder
 import config
 from keras.models import Model
@@ -11,6 +13,8 @@ from mcts import MCTS
 import requests
 import json
 import numpy as np
+
+logging.basicConfig(level=logging.INFO)
 
 url = "http://localhost:5000/predict"
 
@@ -29,6 +33,11 @@ class Agent:
         # memory
         self.memory = []
 
+        # connect to the server to do predictions
+        self.socket_to_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket_to_server.connect((config.SOCKET_HOST, config.SOCKET_PORT))
+        logging.info(f"Agent connected to server {config.SOCKET_HOST}:{config.SOCKET_PORT}")
+
     def build_model(self) -> Model:
         # create the model
         model_builder = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE)
@@ -44,13 +53,6 @@ class Agent:
         print(f"Time: {(time.time() - start_time):.3f} seconds for {n} simulations")
         print("="*50)
 
-    def evaluate_network(self, best_model, amount=400):
-        """
-        Test to see if new network is stronger than the current best model
-        Do this by playing x games. If the new network wins more, it is the new best model 
-        """
-        pass
-
     def save_model(self, timestamped: bool = False):
         """
         Save the model to a file
@@ -61,9 +63,23 @@ class Agent:
             self.model.save(f"{config.MODEL_FOLDER}/model.h5")
 
     def predict(self, data):
-        data = {"data": base64.b64encode(data.tobytes()).decode("utf-8")}
-        r = json.loads(requests.post(url, json=data).text)
-        return np.array(r["prediction"]), r["value"]
+        """
+        Send data to the server and get the prediction
+        """
+        # send data to server
+        self.socket_to_server.send(data)
+        # get msg length
+        data_length = self.socket_to_server.recv(10)
+        data_length = int(data_length.decode("ascii"))
+        # get prediction
+        response = utils.recvall(self.socket_to_server, data_length)
+        # decode response
+        response = response.decode("ascii")
+        # json to dict
+        response = json.loads(response)
+        # unpack dictionary to tuple
+        return np.array(response["prediction"]), response["value"]
+
 
     # @tf.function
     # def predict(self, args):

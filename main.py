@@ -1,6 +1,8 @@
 import base64
 import json
+import logging
 from multiprocessing import Pool
+import socket
 import uuid
 from agent import Agent
 from chessEnv import ChessEnv
@@ -13,6 +15,11 @@ import numpy as np
 import os
 import utils
 import pandas as pd
+from tqdm import tqdm
+
+# set logging config
+logging.basicConfig(level=logging.ERROR, format=' %(message)s')
+
 
 class Game:
     def __init__(self, env: ChessEnv, white: Agent, black: Agent):
@@ -33,14 +40,14 @@ class Game:
         return 1 if result == "1-0" else - 1 if result == "0-1" else 0
 
 
-    @utils.timer_function
+    @utils.time_function
     def play_one_game(self, stochastic: bool = True) -> int:
         # reset everything
         self.reset()
         # add a new memory entry
         self.memory.append([])
         # show the board
-        print(self.env.board)
+        logging.info(f"\n{self.env.board}")
         # counter to check amount of moves played. if above limit, estimate winner
         counter, previous_edges, full_game = 0, (None, None), True
         while not self.env.board.is_game_over():
@@ -51,13 +58,13 @@ class Game:
             if counter > config.MAX_GAME_MOVES:
                 # estimate the winner based on piece values
                 winner = ChessEnv.estimate_winner(self.env.board)
-                print(f"Game over by move limit ({config.MAX_GAME_MOVES}). Result: {winner}")
+                logging.info(f"Game over by move limit ({config.MAX_GAME_MOVES}). Result: {winner}")
                 full_game = False
                 break
         if full_game:
             # get the winner based on the result of the game
             winner = Game.get_winner(self.env.board.result())
-            print(f"Game over. Result: {winner}")
+            logging.info(f"Game over. Result: {winner}")
         # save game result to memory for all games
         for index, element in enumerate(self.memory[-1]):
             self.memory[-1][index] = (element[0], element[1], winner)
@@ -70,10 +77,10 @@ class Game:
         for move in self.env.board.move_stack[1:]:
             node = node.add_variation(move)
         # print pgn
-        print(game)
+        logging.info(game)
 
         # save memory to file
-        self.save_game(name="game")
+        self.save_game(name="game", full_game=full_game)
 
         return winner
 
@@ -97,7 +104,7 @@ class Game:
                 node = node.get_edge(previous_moves[1].action).output_node
                 current_player.mcts.root = node
             except AttributeError:
-                print("WARN: Node does not exist in tree, continuing with new tree...")
+                logging.warning("WARN: Node does not exist in tree, continuing with new tree...")
                 current_player.mcts = MCTS(current_player, state=self.env.board.fen())
         # play n simulations from the root node
         current_player.run_simulations(n=config.SIMULATIONS_PER_MOVE)
@@ -118,12 +125,12 @@ class Game:
             best_move = moves[np.argmax(probs)]
 
         # play the move
-        print(
+        logging.info(
             f"{'White' if self.turn else 'Black'} played  {self.env.board.fullmove_number}. {best_move.action}")
         new_board = self.env.step(best_move.action)
-        print(new_board)
-        print(f"Value according to white: {self.white.mcts.root.value}")
-        print(f"Value according to black: {self.black.mcts.root.value}")
+        logging.info(f"\n{new_board}")
+        logging.info(f"Value according to white: {self.white.mcts.root.value}")
+        logging.info(f"Value according to black: {self.black.mcts.root.value}")
 
         # switch turn
         self.turn = not self.turn
@@ -139,31 +146,36 @@ class Game:
         # winner gets added after game is over
         self.memory[-1].append((state, search_probabilities, None))
 
-    def save_game(self, name: str = "game") -> None:
+    def save_game(self, name: str = "game", full_game: bool = False) -> None:
         # the game id consist of game + datetime
         game_id = f"{name}-{str(uuid.uuid4())[:8]}"
+        if full_game:
+            # if the game result was not estimated, save the game id to a seperate file (to look at later)
+            with open("full_games.txt", "a") as f:
+                f.write(f"{game_id}.npy\n")
+        # 
         np.save(os.path.join(config.MEMORY_DIR, game_id), self.memory[-1])
-        print(
+        logging.info(
             f"Game saved to {os.path.join(config.MEMORY_DIR, game_id)}.npy")
-        print(f"Memory size: {len(self.memory)}")
+        logging.info(f"Memory size: {len(self.memory)}")
 
 
-    @utils.timer_function
+    @utils.time_function
     def train_puzzles(self, puzzles: pd.DataFrame):
         """
         Create positions from puzzles (fen strings) and let the MCTS figure out how to solve them.
         The saved positions can be used to train the neural network.
         """
-        print(f"Training on {len(puzzles)} puzzles")
+        logging.info(f"Training on {len(puzzles)} puzzles")
         for puzzle in puzzles.itertuples():
             self.env.fen = puzzle.fen
             self.env.reset()
             # play the first move
             moves = puzzle.moves.split(" ")
             self.env.board.push_uci(moves.pop(0))
-            print(f"Puzzle to solve ({puzzle.rating} ELO): {self.env.fen}")
-            print(self.env.board)
-            print(f"Correct solution: {moves} ({len(moves)} moves)")
+            logging.info(f"Puzzle to solve ({puzzle.rating} ELO): {self.env.fen}")
+            logging.info(f"\n{self.env.board}")
+            logging.info(f"Correct solution: {moves} ({len(moves)} moves)")
             self.memory.append([])
             counter, best_edge = 0, None
             while not self.env.board.is_game_over():
@@ -171,12 +183,12 @@ class Game:
                 best_edge = self.play_move(stochastic=False, previous_move=best_edge)
                 counter += 1
                 if counter > config.MAX_PUZZLE_MOVES:
-                    print("Puzzle could not be solved within the move limit")
+                    logging.warning("Puzzle could not be solved within the move limit")
                     solved = False
                     break
             if not solved: 
                 continue
-            print(f"Puzzle complete. Ended after {counter} moves: {self.env.board.result()}")
+            logging.info(f"Puzzle complete. Ended after {counter} moves: {self.env.board.result()}")
             # save game result to memory for all games
             winner = Game.get_winner(self.env.board.result())
             for index, element in enumerate(self.memory[-1]):
@@ -188,10 +200,10 @@ class Game:
             # add moves
             node = game.add_variation(self.env.board.move_stack[0])
             for move in self.env.board.move_stack[1:]:
-                print(move)
+                logging.info(move)
                 node = node.add_variation(move)
             # print pgn
-            print(game)
+            logging.info(game)
 
             # save memory to file
             self.save_game(name="puzzle")
@@ -206,7 +218,7 @@ class Game:
         puzzles.columns = ["fen", "moves", "rating", "type"]
         # only keep puzzles where type contains "mate"
         puzzles = puzzles[puzzles["type"].str.contains("mateIn2")]
-        game.train_puzzles(puzzles)
+        self.train_puzzles(puzzles)
 
     def create_training_set(self):
         counter = {"white": 0, "black": 0, "draw": 0}
@@ -218,18 +230,36 @@ class Game:
                 counter["black"] += 1
             else:
                 counter["draw"] += 1
-            print(
+            logging.info(
                 f"Game results: {counter['white']} - {counter['black']} - {counter['draw']}")
     
-    def test(self):
-        import requests
+    @utils.time_function
+    @staticmethod
+    def test():
+        # create socket client
+        socket_to_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        socket_to_server.connect((config.SOCKET_HOST, config.SOCKET_PORT))
+        logging.info(f"Connected to server {config.SOCKET_HOST}:{config.SOCKET_PORT}")
 
-        input_state: np.ndarray = ChessEnv.state_to_input(self.env.board.fen())
-        url = "http://localhost:5000/predict"
-        data = {"data": base64.b64encode(input_state.tobytes()).decode("utf-8")}
-        response = requests.post(url, json=data)
-        response = json.loads(response.text)
-        return np.array(response["prediction"]).shape, type(response["value"])
+        board = chess.Board()
+
+        for _ in range(1500):
+            # create data
+            data: np.ndarray = ChessEnv.state_to_input(board.fen())
+            # send data
+            socket_to_server.send(data)
+            # receive data length
+            data_length = socket_to_server.recv(10)
+            data_length = int(data_length.decode('ascii'))
+            # receive data
+            data = utils.recvall(socket_to_server, data_length)
+            # decode data
+            data = data.decode('ascii')
+            # json to dict
+            data = json.loads(data)
+            # make random move
+            board.push(list(board.generate_legal_moves())[0])
+
 
 
 def multiprocessed_self_play(_ = None):
@@ -243,13 +273,15 @@ def multiprocessed_self_play(_ = None):
     env = ChessEnv()
 
     game = Game(env=env, white=white, black=black)
-    return game.play_one_game(stochastic=True)
-    # return game.test()
+    while True:
+        game.play_one_game(stochastic=True)
+    # return Game.test()
     # game.create_puzzle_set(filename="puzzles/lichess_db_puzzle.csv")
 
 
 if __name__ == "__main__":
-    p_count = 8
+    # Game.test()
+    p_count = 4
     with Pool(processes=p_count) as pool:
         pool.map(multiprocessed_self_play, [None for _ in range(p_count)])
 

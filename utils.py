@@ -1,14 +1,16 @@
+import socket
 import chess
 from chess import Move, PieceType
 import numpy as np
 from PIL import Image
 import time
 from mapper import Mapping
+import config
 
 
 def save_input_state_to_imgs(input_state: np.ndarray, path: str, names: list = None, only_full: bool = False):
     """
-    Save the input state to images
+    Save an input state to images
     """
     start_time = time.time()
     if not only_full:
@@ -38,10 +40,9 @@ def save_input_state_to_imgs(input_state: np.ndarray, path: str, names: list = N
     print(
         f"*** Saving to images: {(time.time() - start_time):.6f} seconds ***")
 
-
 def save_output_state_to_imgs(output_state: np.ndarray, path: str, name: str = "full"):
     """
-    Save the output state to images
+    Save an output state to images
     """
     start_time = time.time()
     # full image of all states
@@ -57,8 +58,10 @@ def save_output_state_to_imgs(output_state: np.ndarray, path: str, name: str = "
     print(
         f"*** Saving to images: {(time.time() - start_time):.6f} seconds ***")
 
-# timer function decorator
-def timer_function(func):
+def time_function(func):
+    """
+    Decorator to time a function
+    """
     def wrap_func(*args, **kwargs):
         t1 = time.time()
         result = func(*args, **kwargs)
@@ -77,9 +80,10 @@ def moves_to_output_vector(moves: dict, board: chess.Board) -> np.ndarray:
         vector[plane_index, row, col] = moves[move]
     return np.asarray(vector)
     
-
 def move_to_plane_index(move: str, board: chess.Board):
-    # convert move to plane index
+    """"
+    Convert a move to a plane index and the row and column on the board
+    """
     move: Move = Move.from_uci(move)
     # get start and end position
     from_square = move.from_square
@@ -110,3 +114,22 @@ def move_to_plane_index(move: str, board: chess.Board):
     row = from_square % 8
     col = 7 - (from_square // 8)
     return (plane_index, row, col)
+
+def recvall(sock: socket.socket, count: int = 0) -> bytes:
+    """
+    Function to continuously receive data from a socket
+    """
+    buffer = b''
+    if count == 0:
+        while True:
+            part = sock.recv(config.SOCKET_BUFFER_SIZE)
+            buffer += part
+            if len(part) < config.SOCKET_BUFFER_SIZE:
+                break
+    else:
+        while count > 0:
+            part = sock.recv(config.SOCKET_BUFFER_SIZE)
+            buffer += part
+            count -= len(part)
+    return buffer
+    

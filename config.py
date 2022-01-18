@@ -9,7 +9,7 @@ C_base = 20000 # defines how CPUCT grows
 C_init = 2
 
 # if stochastic, use epsilon-greedy to sometimes pick moves from the prob dist
-EPSILON = 0.2
+EPSILON = 0.7
 
 # limit the amount of moves played in a game
 MAX_PUZZLE_MOVES = 4
@@ -62,3 +62,8 @@ LOSS_PLOTS_FOLDER="./plots"
 # ============= MEMORY CONFIGURATION =============
 MEMORY_DIR = "./memory"
 MAX_REPLAY_MEMORY = 1000000
+
+# ============= SOCKET CONFIGURATION =============
+SOCKET_HOST = "localhost"
+SOCKET_PORT = 5000
+SOCKET_BUFFER_SIZE = 4096
