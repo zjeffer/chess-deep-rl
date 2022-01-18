@@ -6569,7 +6569,7 @@ Time: 66.35295748710632
         4    0.000    0.000    0.000    0.000 _pep440.py:426(_parse_local_version)
         4    0.000    0.000    0.000    0.000 origin_info.py:158(__init__)
         4    0.000    0.000    0.000    0.000 {method 'values' of 'collections.OrderedDict' objects}
-        4    0.000    0.000    0.000    0.000 utils.py:63(timer_function)
+        4    0.000    0.000    0.000    0.000 utils.py:63(time_function)
         1    0.000    0.000    0.000    0.000 contexts.py:212(RNGContext)
         1    0.000    0.000    0.000    0.000 rolling.py:558(BaseWindowGroupby)
         1    0.000    0.000    0.000    0.000 losses_utils.py:24(ReductionV2)
