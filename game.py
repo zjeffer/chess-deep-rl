@@ -171,10 +171,10 @@ class Game:
             logging.info(f"\n{self.env.board}")
             logging.info(f"Correct solution: {moves} ({len(moves)} moves)")
             self.memory.append([])
-            counter, best_edge = 0, None
+            counter, previous_edges = 0, (None, None)
             while not self.env.board.is_game_over():
                 # deterministically choose the next move (we want no exploration here)
-                best_edge = self.play_move(stochastic=False, previous_move=best_edge)
+                previous_edges = self.play_move(stochastic=False, previous_moves=previous_edges)
                 counter += 1
                 if counter > config.MAX_PUZZLE_MOVES:
                     logging.warning("Puzzle could not be solved within the move limit")
