@@ -16,8 +16,6 @@ import numpy as np
 
 logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
-url = "http://localhost:5000/predict"
-
 class Agent:
     def __init__(self, model_path: str = None):
         self.MAX_REPLAY_MEMORY = config.MAX_REPLAY_MEMORY
