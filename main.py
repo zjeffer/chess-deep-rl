@@ -39,20 +39,25 @@ def multiprocessed_self_play(_ = None):
         game.play_one_game(stochastic=True)
     # game.create_puzzle_set(filename="puzzles/lichess_db_puzzle.csv")
 
-def multiprocessed_puzzle_solver(_ = None):
+def multiprocessed_puzzle_solver(puzzles):
     """
     Continuously solve puzzles 
     """
     game = setup()
+
     # solve puzzles continuously
     while True:
-        game.create_puzzle_set(stochastic=False, type="mateIn2")
+        # shuffle pandas rows
+        puzzles = puzzles.sample(frac=1).reset_index(drop=True)
+        game.train_puzzles()
 
 if __name__ == "__main__":
     p_count = 4
     with Pool(processes=p_count) as pool:
         pool.map(multiprocessed_self_play, [None for _ in range(p_count)])
-    
 
+    # with Pool(processes=p_count) as pool:
+    #     puzzles = Game.create_puzzle_set(filename="puzzles/lichess_db_puzzle.csv", type="mateIn1")
+    #     pool.map(multiprocessed_puzzle_solver, [puzzles for _ in range(p_count)])
     
     

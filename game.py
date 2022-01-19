@@ -1,4 +1,5 @@
 import os
+import time
 from chessEnv import ChessEnv
 from agent import Agent
 import utils
@@ -201,17 +202,19 @@ class Game:
             # save memory to file
             self.save_game(name="puzzle")
 
-    def create_puzzle_set(self, filename: str, type: str = "mateIn2"):
+    @staticmethod
+    def create_puzzle_set(filename: str, type: str = "mateIn2") -> pd.DataFrame:
+        start_time = time.time()
         puzzles: pd.DataFrame = pd.read_csv(filename, header=None)
-        # shuffle pandas rows
-        puzzles = puzzles.sample(frac=1).reset_index(drop=True)
         # drop unnecessary columns
         puzzles = puzzles.drop(columns=[0, 4, 5, 6, 8])
         # set column names
         puzzles.columns = ["fen", "moves", "rating", "type"]
         # only keep puzzles where type contains "mate"
         puzzles = puzzles[puzzles["type"].str.contains(type)]
-        self.train_puzzles(puzzles)
+        logging.info(f"Created puzzles in {time.time() - start_time} seconds")
+        return puzzles
+        
 
     def create_training_set(self):
         counter = {"white": 0, "black": 0, "draw": 0}
