@@ -19,12 +19,17 @@ import config
 from mapper import Mapping
 
 import logging
-logging.basicConfig(level=logging.INFO, format=' %(message)s')
-
 
 
 class MCTS:
     def __init__(self, agent: "Agent", state: str = chess.STARTING_FEN):
+        """
+        An object of the MCTS class represents a tree that can be built using 
+        the Monte Carlo Tree Search algorithm. The tree contists of nodes and edges.
+        The root node represents the current move of the game.
+
+        Hundreds of simulations are run to build the tree.
+        """
         self.root = Node(state=state)
 
         self.game_path: list[Edge] = []
@@ -32,7 +37,13 @@ class MCTS:
 
         self.agent = agent
 
-    def run_simulations(self, n = 50):
+    def run_simulations(self, n: int) -> None:
+        """
+        Run n simulations from the root node.
+        1) select child
+        2) expand and evaluate
+        3) backpropagate
+        """
         for _ in tqdm(range(n)):
             self.game_path = []
 
@@ -49,16 +60,18 @@ class MCTS:
 
     def select_child(self, node: Node) -> Node:
         """
-        Traverse the three from the @node, by selecting actions using the maximum Q+U.
+        Traverse the three from the given node, by selecting actions with the maximum Q+U.
 
-        If the node has not been visited yet, return the node.
+        If the node has not been visited yet, return the node. That is the new leaf node.
+        If this is the first simulation, the leaf node is the root node.
         """
         # traverse the tree by selecting nodes until a leaf node is reached
         while not node.is_leaf():
             if not len(node.edges):
                 # if the node is terminal, return the node
                 return node
-            best_edge: Edge = max(node.edges, key=lambda edge: edge.upper_confidence_bound())
+            best_edge: Edge = max(
+                node.edges, key=lambda edge: edge.upper_confidence_bound())
             # get that actions's new node
             node = best_edge.output_node
             self.game_path.append(best_edge)
@@ -99,7 +112,7 @@ class MCTS:
         row = from_square % 8
         col = 7 - (from_square // 8)
         self.outputs.append((move, plane_index, row, col))
-    
+
     def probabilities_to_actions(self, probabilities: list, board: str) -> dict:
         """
         Map the output vector of 4672 probabilities to moves. Returns a dictionary of moves and their probabilities.
@@ -124,6 +137,7 @@ class MCTS:
         self.cur_board = chess.Board(board)
         valid_moves = self.cur_board.generate_legal_moves()
         self.outputs = []
+        # use threading to map valid moves quicker
         threads = []
         while True:
             try:
@@ -134,13 +148,14 @@ class MCTS:
                 target=self.map_valid_move, args=(move,))
             threads.append(thread)
 
+        # start all threads
         for thread in threads:
             thread.start()
 
+        # wait until all threads are done
         for thread in threads:
             thread.join()
 
-        # probabilities = probabilities.numpy()
         for move, plane_index, col, row in self.outputs:
             # mask[plane_index][col][row] = 1
             actions[move.uci()] = probabilities[plane_index][col][row]
@@ -202,8 +217,12 @@ class MCTS:
         return leaf
 
     def backpropagate(self, end_node: Node, value: float) -> Node:
+        """
+        The backpropagation step will update the values of the nodes 
+        in the traversed path from the given leaf node up to the root node.
+        """
         logging.debug("Backpropagation...")
-        
+
         for edge in self.game_path:
             edge.input_node.N += 1
             edge.N += 1
@@ -211,6 +230,9 @@ class MCTS:
         return end_node
 
     def plot_node(self, dot: Digraph, node: Node):
+        """
+        Recursive function to plot nodes.
+        """
         dot.node(f"{node.state}", f"N")
         for edge in node.edges:
             dot.edge(str(edge.input_node.state), str(
@@ -219,6 +241,9 @@ class MCTS:
         return dot
 
     def plot_tree(self) -> None:
+        """
+        Plot the MCTS tree using graphviz.
+        """
         # tree plotting
         dot = Digraph(comment='Chess MCTS Tree')
         print(f"# of nodes in tree: {len(self.root.get_all_children())}")

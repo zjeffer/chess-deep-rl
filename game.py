@@ -17,6 +17,9 @@ import json
 
 class Game:
     def __init__(self, env: ChessEnv, white: Agent, black: Agent):
+        """
+        The Game class is used to play chess games between two agents.
+        """
         self.env = env
         self.white = white
         self.black = black
@@ -36,6 +39,11 @@ class Game:
 
     @utils.time_function
     def play_one_game(self, stochastic: bool = True) -> int:
+        """
+        Play one game from the starting position, and save it to memory.
+        Keep playing moves until either the game is over, or it has reached the move limit.
+        If the move limit is reached, the winner is estimated.
+        """
         # reset everything
         self.reset()
         # add a new memory entry
@@ -47,6 +55,9 @@ class Game:
         while not self.env.board.is_game_over():
             # play one move (previous move is used for updating the MCTS tree)
             previous_edges = self.play_move(stochastic=stochastic, previous_moves=previous_edges)
+            logging.info(f"\n{self.env.board}")
+            logging.info(f"Value according to white: {self.white.mcts.root.value}")
+            logging.info(f"Value according to black: {self.black.mcts.root.value}")
             # end if the game drags on too long
             counter += 1
             if counter > config.MAX_GAME_MOVES:
@@ -78,7 +89,7 @@ class Game:
 
         return winner
 
-    def play_move(self, stochastic: bool = True, previous_moves: tuple[Edge, Edge] = (None, None)) -> None:
+    def play_move(self, stochastic: bool = True, previous_moves: tuple[Edge, Edge] = (None, None), save_moves=True) -> None:
         """
         Play one move. If stochastic is True, the move is chosen using a probability distribution.
         Otherwise, the move is chosen based on the highest N (deterministically).
@@ -91,7 +102,7 @@ class Game:
         if previous_moves[0] is None or previous_moves[1] is None:
             # create new tree with root node == current board
             current_player.mcts = MCTS(current_player, state=self.env.board.fen())
-        else:   
+        else:
             # change the root node to the node after playing the two previous moves
             try:
                 node = current_player.mcts.root.get_edge(previous_moves[0].action).output_node
@@ -105,8 +116,8 @@ class Game:
 
         moves = current_player.mcts.root.edges
 
-        # TODO: check if storing input state is faster/less space-consuming than storing the fen string
-        self.save_to_memory(self.env.board.fen(), moves)
+        if save_moves:
+            self.save_to_memory(self.env.board.fen(), moves)
 
         sum_move_visits = sum(e.N for e in moves)
         probs = [e.N / sum_move_visits for e in moves]
@@ -122,11 +133,8 @@ class Game:
         # play the move
         logging.info(
             f"{'White' if self.turn else 'Black'} played  {self.env.board.fullmove_number}. {best_move.action}")
-        new_board = self.env.step(best_move.action)
-        logging.info(f"\n{new_board}")
-        logging.info(f"Value according to white: {self.white.mcts.root.value}")
-        logging.info(f"Value according to black: {self.black.mcts.root.value}")
-
+        self.env.step(best_move.action)
+        
         # switch turn
         self.turn = not self.turn
 
@@ -134,6 +142,9 @@ class Game:
         return (previous_moves[1], best_move)
 
     def save_to_memory(self, state, moves) -> None:
+        """
+        Append the current state and move probabilities to the internal memory.
+        """
         sum_move_visits = sum(e.N for e in moves)
         # create dictionary of moves and their probabilities
         search_probabilities = {
@@ -142,6 +153,9 @@ class Game:
         self.memory[-1].append((state, search_probabilities, None))
 
     def save_game(self, name: str = "game", full_game: bool = False) -> None:
+        """
+        Save the internal memory to a .npy file.
+        """
         # the game id consist of game + datetime
         game_id = f"{name}-{str(uuid.uuid4())[:8]}"
         if full_game:
@@ -175,6 +189,9 @@ class Game:
             while not self.env.board.is_game_over():
                 # deterministically choose the next move (we want no exploration here)
                 previous_edges = self.play_move(stochastic=False, previous_moves=previous_edges)
+                logging.info(f"\n{self.env.board}")
+                logging.info(f"Value according to white: {self.white.mcts.root.value}")
+                logging.info(f"Value according to black: {self.black.mcts.root.value}")
                 counter += 1
                 if counter > config.MAX_PUZZLE_MOVES:
                     logging.warning("Puzzle could not be solved within the move limit")
@@ -204,6 +221,10 @@ class Game:
 
     @staticmethod
     def create_puzzle_set(filename: str, type: str = "mateIn2") -> pd.DataFrame:
+        """
+        Load the puzzles from a csv file. The type of puzzle can be specified.
+        Return the puzzles as a Pandas DataFrame.
+        """
         start_time = time.time()
         puzzles: pd.DataFrame = pd.read_csv(filename, header=None)
         # drop unnecessary columns
@@ -214,44 +235,5 @@ class Game:
         puzzles = puzzles[puzzles["type"].str.contains(type)]
         logging.info(f"Created puzzles in {time.time() - start_time} seconds")
         return puzzles
-        
 
-    def create_training_set(self):
-        counter = {"white": 0, "black": 0, "draw": 0}
-        while True:
-            winner = self.play_one_game(stochastic=True)
-            if winner == 1:
-                counter["white"] += 1
-            elif winner == -1:
-                counter["black"] += 1
-            else:
-                counter["draw"] += 1
-            logging.info(
-                f"Game results: {counter['white']} - {counter['black']} - {counter['draw']}")
     
-    @utils.time_function
-    @staticmethod
-    def test():
-        # create socket client
-        socket_to_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        socket_to_server.connect((config.SOCKET_HOST, config.SOCKET_PORT))
-        logging.info(f"Connected to server {config.SOCKET_HOST}:{config.SOCKET_PORT}")
-
-        board = chess.Board()
-
-        for _ in range(1500):
-            # create data
-            data: np.ndarray = ChessEnv.state_to_input(board.fen())
-            # send data
-            socket_to_server.send(data)
-            # receive data length
-            data_length = socket_to_server.recv(10)
-            data_length = int(data_length.decode('ascii'))
-            # receive data
-            data = utils.recvall(socket_to_server, data_length)
-            # decode data
-            data = data.decode('ascii')
-            # json to dict
-            data = json.loads(data)
-            # make random move
-            board.push(list(board.generate_legal_moves())[0])

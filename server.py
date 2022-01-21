@@ -14,24 +14,34 @@ from tensorflow.keras.models import load_model
 
 logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
-model = load_model(config.MODEL_FOLDER + "/model.h5")
+model = load_model(config.MODEL_FOLDER + "/model_all_data.h5")
 
-@tf.function
-def predict(args) -> Tuple[list[float], float]:
+@tf.function(experimental_follow_type_hints=True)
+def predict(args: tf.Tensor) -> Tuple[list[tf.float32], list[list[tf.float32]]]:
 	return model(args)
 
 
 class ServerSocket:
 	def __init__(self, host, port):
+		"""
+		The server object listens to connections and creates client handlers
+		for every client (multi-threaded).
+
+		It receives inputs from the clients and returns the predictions to the correct client.
+		"""
 		self.host = host
 		self.port = port
 		# first prediction
 		test_data = np.random.choice(a=[False, True], size=(1, *config.INPUT_SHAPE), p=[0, 1])
+		tf.convert_to_tensor(test_data, dtype=tf.bool)
 		p, v = predict(test_data)
 		del test_data, p, v
 
 
 	def start(self):
+		"""
+		Start the server and listen for connections.
+		"""
 		logging.info("Starting server...")
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -50,6 +60,9 @@ class ServerSocket:
 			self.sock.close()
 
 	def accept(self):
+		"""
+		Accept a connection and create a client handler for it.	
+		"""
 		logging.info("Waiting for client...")
 		self.client, address = self.sock.accept()
 		logging.info(f"Client connected from {address}")
@@ -65,12 +78,17 @@ class ServerSocket:
 
 class ClientHandler(threading.Thread):
 	def __init__(self, sock: socket.socket, address: Tuple[str, int]):
+		"""
+		The ClientHandler object handles a single client connection, and sends
+		inputs to the server, and returns the server's predictions to the client.
+		"""
 		super().__init__()
 		self.BUFFER_SIZE = config.SOCKET_BUFFER_SIZE
 		self.sock = sock
 		self.address = address
 
 	def run(self):
+		"""Create a new thread"""
 		print(f"ClientHandler started.")
 		while True:
 			data = self.receive()
@@ -79,6 +97,7 @@ class ClientHandler(threading.Thread):
 				break
 			data = np.array(np.frombuffer(data, dtype=bool))
 			data = data.reshape(1, *config.INPUT_SHAPE)
+			data = tf.convert_to_tensor(data, dtype=tf.bool)
 			# make prediction
 			p, v = predict(data)
 			p, v = p[0].numpy().tolist(), float(v[0][0])
@@ -87,6 +106,9 @@ class ClientHandler(threading.Thread):
 			self.send(response.encode('ascii'))
 
 	def receive(self):
+		"""
+		Receive data from the client.
+		"""
 		data = None
 		try:
 			data = utils.recvall(self.sock)
@@ -100,17 +122,24 @@ class ClientHandler(threading.Thread):
 		return data
 
 	def send(self, data):
+		"""
+		Send data to the client.
+		"""
 		logging.debug("Sending data...")
 		self.sock.send(data)
 		logging.debug("Data sent.")
 
 	def close(self):
+		"""
+		Close the client connection.
+		"""
 		logging.info("Closing connection...")
 		self.sock.close()
 		logging.info("Connection closed.")
 	
 
 if __name__ == "__main__":
+	# create the server socket and start the server
 	s = ServerSocket(config.SOCKET_HOST, config.SOCKET_PORT)
 	s.start()
 	

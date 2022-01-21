@@ -67,6 +67,23 @@ against the previous best for a high amount of games. Whoever wins the most game
 Each player needs to have its own agent object. Every agent has its own 
 MCTS tree and neural network.
 
+### Multi-processing improvements 
+
+![Self-play without multiprocessing](img/without-multiprocessing.png "Self-play without multiprocessing")
+
+
+![Self-play with multiprocessing](img/with-multiprocessing.png "Self-play with multiprocessing")
+
+With a good system as a server (Ryzen 7 5800H + RTX 3070 Mobile), multiple clients (including clients on the system itself) can be connected to the server. 
+
+The result: much faster self-play. The other clients' GPUs do not get used, meaning any system with a good processor can run multiple self-play games in parallel when connected to a server.
+
+
+|System|No multiprocessing|Multiprocessing (16 processes)|
+|:-|:-------------------:|:-------------------:|
+|R7 5800H + RTX 3070|50 sims/sec|30 sims/sec each process|
+|i7 7700HQ + GTX 1050|20 sims/sec|15 sims/sec each process|
+
 
 # Useful sources
 

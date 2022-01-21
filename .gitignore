@@ -4,3 +4,4 @@ models/[^.]*
 memory/[^.]*
 plots/[^.]*
 puzzles/[^.]*
+progress.md

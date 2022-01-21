@@ -98,7 +98,7 @@ class ChessEnv:
                 score += piece_scores[piece.piece_type]
             else:
                 score -= piece_scores[piece.piece_type]
-        if np.abs(score) > 1:
+        if np.abs(score) > 2:
             if score > 0:
                 logging.debug("White wins")
                 return 1
