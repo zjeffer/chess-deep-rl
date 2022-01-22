@@ -1,5 +1,5 @@
-from email import header
-from re import search
+#!/usr/bin/env python3
+
 import uuid
 from agent import Agent
 from chessEnv import ChessEnv
@@ -12,8 +12,6 @@ import os
 import utils
 import pandas as pd
 import tensorflow as tf
-
-from tensorflow.python.framework.ops import disable_eager_execution
 
 class Game:
     def __init__(self, env: ChessEnv, white: Agent, black: Agent):

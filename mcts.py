@@ -61,8 +61,6 @@ class MCTS:
             if not len(node.edges):
                 # if the node is terminal, return the node
                 return node
-            print(node.edges[0])
-            print(type(node.edges[0]))
             best_edge: Edge = max(node.edges, key=lambda edge: edge.upper_confidence_bound())
             # get that actions's new node
             node = best_edge.output_node
@@ -189,9 +187,9 @@ class MCTS:
         # v = [-1, 1]
         with self.agent.strategy.scope():
             input_state = tf.convert_to_tensor(ChessEnv.state_to_input(leaf.state), dtype=bool)
-            start_time = time.time()
+            # start_time = time.time()
             p, v = self.agent.predict(input_state)
-            print(f"Time to predict: {time.time() - start_time}")
+            # print(f"Time to predict: {time.time() - start_time}")
             # print(p)
             # p = p.values[0]
             # v = v.values[0]
