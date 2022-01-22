@@ -27,7 +27,7 @@ class Trainer:
             np.random.shuffle(data)
             return data[:self.batch_size]
 
-    @utils.timer_function
+    @utils.time_function
     def split_Xy(self, data) -> Tuple[np.ndarray, np.ndarray]:
         # board to input format (19x8x8)
         X = np.array([ChessEnv.state_to_input(i[0])[0] for i in data])
@@ -49,7 +49,20 @@ class Trainer:
                 "value_head": y_value
             }, return_dict=True)
 
-    @utils.timer_function
+    @utils.time_function
+    def train_all_data(self, data):
+        history = []
+        np.random.shuffle(data)
+        X, y = self.split_Xy(data)
+        for part in tqdm(range(len(X)//self.batch_size)):
+            start = part * self.batch_size
+            end = start + self.batch_size
+            losses = self.train_batch(X[start:end], y[0][start:end], y[1][start:end])
+            history.append(losses)
+            save_model(self.model, os.path.join(config.MODEL_FOLDER, "model_all_data.h5"))
+        return history
+
+    @utils.time_function
     def train_model(self, data):
         """
         Train the model on batches of data
@@ -59,7 +72,7 @@ class Trainer:
         """
         history = []
         X, (y_probs, y_value) = self.split_Xy(data)
-        for _ in tqdm(range(int(len(data)/5))):
+        for _ in tqdm(range(max(5, len(data) // self.batch_size))):
             indexes = np.random.choice(len(data), size=self.batch_size, replace=True)
             # only select X values with these indexes
             X_batch = X[indexes]
@@ -87,24 +100,19 @@ class Trainer:
         plt.savefig(f'{config.LOSS_PLOTS_FOLDER}/loss-{str(uuid.uuid4())[:8]}.png')
         del df
 
-if __name__ == "__main__":
-    # model = load_model(os.path.join(config.MODEL_FOLDER, "model.h5"))
-    strategy = tf.distribute.MultiWorkerMirroredStrategy()
-    with strategy.scope():
-        model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
-        save_model(model, 'models/model.h5')
-    exit(0)
+if __name__ == "__main__":    
+    # use the last model
+    model = load_model(os.path.join(config.MODEL_FOLDER, "model_5.h5"))
+    # model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
     trainer = Trainer(model=model)
 
-    folder = config.MEMORY_DIR
+    folder = config.MEMORY_DIR + "/old"
     files = os.listdir(folder + "/")
     data = []
     print(f"Loading all games in {folder}...")
     for file in files:
-        # # if file is a folder
-        if os.path.isdir(os.path.join(folder, file)):
-            continue
-        data.append(np.load(f"{folder}/{file}", allow_pickle=True))
+        if file.endswith('.npy'):
+            data.append(np.load(f"{folder}/{file}", allow_pickle=True))
     data = np.concatenate(data)
     # count where third field is 0
     print(f"{len(data[data[:,2] == 1])} games won by white")
@@ -113,7 +121,8 @@ if __name__ == "__main__":
     # delete drawn games
     # data = data[data[:,2] != 0]
     print(f"Training with {len(data)} positions")
-    history = trainer.train_model(data)
+    # history = trainer.train_model(data)
+    history = trainer.train_all_data(data)
     # plot history
     trainer.plot_loss(history)
 

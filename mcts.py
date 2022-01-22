@@ -1,8 +1,6 @@
 # implement the Monte Carlo Tree Search algorithm
-from tensorflow.python.ops.numpy_ops import np_config
 import chess
 import chess.pgn
-from tensorflow.python.ops.numpy_ops.np_math_ops import positive
 from chessEnv import ChessEnv
 from node import Node
 from edge import Edge
@@ -11,7 +9,7 @@ import time
 from tqdm import tqdm
 import utils
 import threading
-import tensorflow as tf
+# import tensorflow as tf
 
 # graphing mcts
 from graphviz import Digraph
@@ -21,13 +19,16 @@ import config
 from mapper import Mapping
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
-
-np_config.enable_numpy_behavior()
-from tensorflow.python.framework.ops import disable_eager_execution
 
 class MCTS:
     def __init__(self, agent: "Agent", state: str = chess.STARTING_FEN):
+        """
+        An object of the MCTS class represents a tree that can be built using 
+        the Monte Carlo Tree Search algorithm. The tree contists of nodes and edges.
+        The root node represents the current move of the game.
+
+        Hundreds of simulations are run to build the tree.
+        """
         self.root = Node(state=state)
 
         self.game_path: list[Edge] = []
@@ -35,7 +36,13 @@ class MCTS:
 
         self.agent = agent
 
-    def run_simulations(self, n = 50):
+    def run_simulations(self, n: int) -> None:
+        """
+        Run n simulations from the root node.
+        1) select child
+        2) expand and evaluate
+        3) backpropagate
+        """
         for _ in tqdm(range(n)):
             self.game_path = []
 
@@ -52,16 +59,18 @@ class MCTS:
 
     def select_child(self, node: Node) -> Node:
         """
-        Traverse the three from the @node, by selecting actions using the maximum Q+U.
+        Traverse the three from the given node, by selecting actions with the maximum Q+U.
 
-        If the node has not been visited yet, return the node.
+        If the node has not been visited yet, return the node. That is the new leaf node.
+        If this is the first simulation, the leaf node is the root node.
         """
         # traverse the tree by selecting nodes until a leaf node is reached
         while not node.is_leaf():
             if not len(node.edges):
                 # if the node is terminal, return the node
                 return node
-            best_edge: Edge = max(node.edges, key=lambda edge: edge.upper_confidence_bound())
+            best_edge: Edge = max(
+                node.edges, key=lambda edge: edge.upper_confidence_bound())
             # get that actions's new node
             node = best_edge.output_node
             self.game_path.append(best_edge)
@@ -127,6 +136,7 @@ class MCTS:
         self.cur_board = chess.Board(board)
         valid_moves = self.cur_board.generate_legal_moves()
         self.outputs = []
+        # use threading to map valid moves quicker
         threads = []
         while True:
             try:
@@ -137,13 +147,14 @@ class MCTS:
                 target=self.map_valid_move, args=(move,))
             threads.append(thread)
 
+        # start all threads
         for thread in threads:
             thread.start()
 
+        # wait until all threads are done
         for thread in threads:
             thread.join()
 
-        # probabilities = probabilities.numpy()
         for move, plane_index, col, row in self.outputs:
             # mask[plane_index][col][row] = 1
             actions[move.uci()] = probabilities[plane_index][col][row]
@@ -152,12 +163,10 @@ class MCTS:
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "unfiltered")
 
         # use the mask to filter the probabilities
-        # mask = tf.convert_to_tensor(mask)
-        # probabilities = tf.multiply(probabilities, mask)
+        # probabilities = np.multiply(probabilities, mask)
 
         # utils.save_output_state_to_imgs(probabilities, "tests/output_planes", "filtered")
         return actions
-
 
     def expand(self, leaf: Node) -> Node:
         """
@@ -185,40 +194,33 @@ class MCTS:
         # predict p and v
         # p = array of probabilities: [0, 1] for every move (including invalid moves)
         # v = [-1, 1]
-        with self.agent.strategy.scope():
-            input_state = tf.convert_to_tensor(ChessEnv.state_to_input(leaf.state), dtype=bool)
-            # start_time = time.time()
-            p, v = self.agent.predict(input_state)
-            # print(f"Time to predict: {time.time() - start_time}")
-            # print(p)
-            # p = p.values[0]
-            # v = v.values[0]
-            p, v = p[0], v[0][0]
-            actions = self.probabilities_to_actions(p, leaf.state)
-            
-            # map probabilities to moves, this also filters out invalid moves
-            # returns a dictionary of moves and their probabilities
-            
-            logging.debug(f"Model predictions: {p}")
-            logging.debug(f"Value of state: {v}")
+        input_state = ChessEnv.state_to_input(leaf.state)
+        p, v = self.agent.predict(input_state)
 
-            leaf.value = v  
+        # map probabilities to moves, this also filters out invalid moves
+        # returns a dictionary of moves and their probabilities
+        # p, v = p[0], v[0][0]
+        actions = self.probabilities_to_actions(p, leaf.state)
 
-            
-            # create a child node for every action
-            for action in possible_actions:
-                # make the move and get the new board
-                new_state = leaf.step(action)
-                # add a new child node with the new board, the action taken and its prior probability
-                leaf.add_child(Node(new_state), action, actions[action.uci()])
-            return leaf
+        logging.debug(f"Model predictions: {p}")
+        logging.debug(f"Value of state: {v}")
+
+        leaf.value = v
+
+        # create a child node for every action
+        for action in possible_actions:
+            # make the move and get the new board
+            new_state = leaf.step(action)
+            # add a new child node with the new board, the action taken and its prior probability
+            leaf.add_child(Node(new_state), action, actions[action.uci()])
+        return leaf
 
     def backpropagate(self, end_node: Node, value: float) -> Node:
+        """
+        The backpropagation step will update the values of the nodes 
+        in the traversed path from the given leaf node up to the root node.
+        """
         logging.debug("Backpropagation...")
-
-        # print(self.game_path)
-        # print(f"Game path length: {len(self.game_path)}")
-        self.game_path.reverse()
 
         for edge in self.game_path:
             edge.input_node.N += 1
@@ -227,6 +229,9 @@ class MCTS:
         return end_node
 
     def plot_node(self, dot: Digraph, node: Node):
+        """
+        Recursive function to plot nodes.
+        """
         dot.node(f"{node.state}", f"N")
         for edge in node.edges:
             dot.edge(str(edge.input_node.state), str(
@@ -235,6 +240,9 @@ class MCTS:
         return dot
 
     def plot_tree(self) -> None:
+        """
+        Plot the MCTS tree using graphviz.
+        """
         # tree plotting
         dot = Digraph(comment='Chess MCTS Tree')
         print(f"# of nodes in tree: {len(self.root.get_all_children())}")

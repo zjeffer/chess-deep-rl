@@ -71,3 +71,11 @@ class Node:
             children.extend(edge.output_node.get_all_children())
         return children
 
+    def get_edge(self, action) -> Edge:
+        """
+        Get the edge between the current node and the child node with the given action.
+        """
+        for edge in self.edges:
+            if edge.action == action:
+                return edge
+        return None

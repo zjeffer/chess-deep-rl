@@ -38,9 +38,9 @@ class RLModelBuilder:
         self.convolution_filters = config.CONVOLUTION_FILTERS
 
         # tensorflow: gpu memory growth
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        [tf.config.experimental.set_memory_growth(
-            gpu, True) for gpu in gpus if gpus]
+        # gpus = tf.config.experimental.list_physical_devices('GPU')
+        # [tf.config.experimental.set_memory_growth(
+        #     gpu, True) for gpu in gpus if gpus]
 
     def build_model(self) -> Model:
         """

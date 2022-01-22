@@ -6,7 +6,8 @@ import numpy as np
 
 import time
 import logging
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
 
 class ChessEnv:
@@ -74,7 +75,7 @@ class ChessEnv:
                      counter, *arrays, en_passant]).reshape((1, *config.INPUT_SHAPE))
         # memory management
         del board
-        return r
+        return r.astype(bool)
 
     @staticmethod
     def estimate_winner(board: chess.Board) -> int:
@@ -97,7 +98,7 @@ class ChessEnv:
                 score += piece_scores[piece.piece_type]
             else:
                 score -= piece_scores[piece.piece_type]
-        if np.abs(score) > 1:
+        if np.abs(score) > 2:
             if score > 0:
                 logging.debug("White wins")
                 return 1

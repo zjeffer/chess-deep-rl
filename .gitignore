@@ -1,6 +1,8 @@
 __pycache__
 *.gv
-models/
-memory/
-plots/
-puzzles/
+models/[^.]*
+memory/[^.]*
+plots/[^.]*
+puzzles/[^.]*
+progress.md
+full_games.txt

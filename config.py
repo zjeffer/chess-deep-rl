@@ -1,13 +1,16 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 500
+SIMULATIONS_PER_MOVE = 50
 
 # exploration parameters 
-# TODO: change these values
 C_base = 20000 # defines how CPUCT grows
 C_init = 2
 
+# if stochastic, use epsilon-greedy to only sometimes pick moves from the prob dist
+EPSILON = 0.8
+
+# limit the amount of moves played in a game
 MAX_PUZZLE_MOVES = 4
 MAX_GAME_MOVES = 100
 
@@ -39,7 +42,7 @@ OUTPUT_SHAPE = (8*8*amount_of_planes, 1)
 
 # ============= NEURAL NETWORK PARAMETERS =============
 # TODO: change if necessary. AZ started with 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
-LEARNING_RATE = 0.002
+LEARNING_RATE = 0.2
 # filters for the convolutional layers (AZ: 256)
 CONVOLUTION_FILTERS = 256
 # amount of hidden residual layers
@@ -52,9 +55,14 @@ AMOUNT_OF_RESIDUAL_BLOCKS = 19
 MODEL_FOLDER = './models/'
 
 # ============= TRAINING PARAMETERS =============
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 LOSS_PLOTS_FOLDER="./plots"
 
 # ============= MEMORY CONFIGURATION =============
 MEMORY_DIR = "./memory"
 MAX_REPLAY_MEMORY = 1000000
+
+# ============= SOCKET CONFIGURATION =============
+SOCKET_HOST = "0.0.0.0"
+SOCKET_PORT = 5000
+SOCKET_BUFFER_SIZE = 4096
