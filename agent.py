@@ -11,10 +11,11 @@ from mcts import MCTS
 # from tensorflow.keras.models import load_model
 import json
 import numpy as np
+import chess
 
 
 class Agent:
-    def __init__(self, local_predictions: bool = False, model_path = None):
+    def __init__(self, local_predictions: bool = False, model_path = None, state=chess.STARTING_FEN):
         """
         An agent is an object that can play chessmoves on the environment.
         Based on the parameters, it can play with a local model, or send its input to a server.
@@ -40,7 +41,7 @@ class Agent:
                 exit(1)
             logging.info(f"Agent connected to server {config.SOCKET_HOST}:{config.SOCKET_PORT}")
 
-        self.mcts = MCTS(self)
+        self.mcts = MCTS(self, state=state)
         
 
     def build_model(self) -> Model:

@@ -7,11 +7,12 @@ from game import Game
 import config
 import numpy as np
 import os
+import chess
 
 # set logging config
 logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
-def setup() -> Game:
+def setup(starting_position: str = chess.STARTING_FEN) -> Game:
     """
     Setup function to set up a game. 
     This can be used in both the self-play and puzzle solving function
@@ -19,13 +20,15 @@ def setup() -> Game:
     # set different random seeds for each process
     np.random.seed((os.getpid() * int(time.time())) % 123456789)
 
+    # create environment and game
+    env = ChessEnv(fen=starting_position)
+
     # create agents
     # model_path = os.path.join(config.MODEL_FOLDER, "model.h5")
-    white = Agent()
-    black = Agent()
+    white = Agent(state=env.board.fen())
+    black = Agent(state=env.board.fen())
 
-    # create environment and game
-    env = ChessEnv()
+    
     return Game(env=env, white=white, black=black)
 
 def multiprocessed_self_play(_ = None):

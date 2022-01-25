@@ -5,7 +5,7 @@ import utils
 import logging
 import numpy as np
 import selfplay
-
+import chess
 
 
 class Test:
@@ -13,19 +13,12 @@ class Test:
     Class to do unit tests and benchmark functions for optimization.
     """
     def __init__(self):
-        self.reset()
+        pass
 
-    def reset(self):
-        # don't build the model (it's not needed for these tests)
-        white = Agent()
-        black = Agent()
-        self.game = Game(ChessEnv(), white, black)
 
     @utils.time_function
     def run_state_to_input_test(self, n: int = 1):
         for _ in range(n):
-
-            self.reset()
             # test en passant
             for move in ["e4", "a5", "e5", "Nc6", "d4", "d5"]:
                 self.env.step(move)
@@ -69,6 +62,26 @@ class Test:
         # plot tree
         game.white.mcts.plot_tree(f"tests/mcts_tree_{n}_nodes.gv")
         
+    @utils.time_function
+    def test_position_outputs(self, position: str = chess.STARTING_FEN, n: int = 50):
+        game = selfplay.setup(position)
+        
+        
+
+        # get playing side's agent
+        agent = game.white if game.env.board.turn == chess.WHITE else game.black
+        # create a tree by running sims
+        agent.run_simulations(n)
+
+        print(f"Input: {game.env.board.fen()}")
+
+        # print outputs
+        print("Outputs: ")
+        print(f"Visit count for the root node: {agent.mcts.root.N}")
+        for action in sorted(agent.mcts.root.edges, key=lambda edge: (edge.W/(edge.N if edge.N != 0 else 1))+edge.upper_confidence_bound(), reverse=True):
+            print(action)
+
+
 
 if __name__ == "__main__":
     test = Test()
@@ -77,6 +90,8 @@ if __name__ == "__main__":
     # test.test_mask2()
     # test.test_mask3()
 
-    test.test_mcts_tree(20)
-    test.test_mcts_tree(400)
-    test.test_mcts_tree(1200)
+    # test.test_mcts_tree(20)
+    # test.test_mcts_tree(400)
+    # test.test_mcts_tree(1200)
+
+    test.test_position_outputs("1k6/1pp5/p3B2p/3Pq3/2P1p3/PP3r2/4Q3/5RK1 b - - 0 36", 400)
