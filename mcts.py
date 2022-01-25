@@ -240,14 +240,15 @@ class MCTS:
             dot = self.plot_node(dot, edge.output_node)
         return dot
 
-    def plot_tree(self) -> None:
+    def plot_tree(self, save_path: str = "tests/mcts_tree.gv") -> None:
         """
         Plot the MCTS tree using graphviz.
         """
+        logging.debug("Plotting tree...")
         # tree plotting
         dot = Digraph(comment='Chess MCTS Tree')
-        print(f"# of nodes in tree: {len(self.root.get_all_children())}")
+        logging.info(f"# of nodes in tree: {len(self.root.get_all_children())}")
 
         # recursively plot the tree
         dot = self.plot_node(dot, self.root)
-        dot.save('mcts_tree.gv')
+        dot.save(save_path)

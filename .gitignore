@@ -1,5 +1,4 @@
 __pycache__
-*.gv
 models/[^.]*
 memory/[^.]*
 plots/[^.]*

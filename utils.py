@@ -6,7 +6,7 @@ from PIL import Image
 import time
 from mapper import Mapping
 import config
-
+from node import Node
 
 def save_input_state_to_imgs(input_state: np.ndarray, path: str, names: list = None, only_full: bool = False):
     """
@@ -133,3 +133,11 @@ def recvall(sock: socket.socket, count: int = 0) -> bytes:
             count -= len(part)
     return buffer
     
+def get_height_of_tree(node: Node):
+    if node is None:
+        return 0
+
+    h = 0
+    for edge in node.edges:
+        h = max(h, get_height_of_tree(edge.output_node))
+    return h + 1

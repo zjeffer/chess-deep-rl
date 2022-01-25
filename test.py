@@ -1,9 +1,10 @@
 from agent import Agent
 from chessEnv import ChessEnv
+from game import Game
 import utils
 import logging
 import numpy as np
-
+import selfplay
 
 
 
@@ -16,9 +17,9 @@ class Test:
 
     def reset(self):
         # don't build the model (it's not needed for these tests)
-        white = Agent(build_model=False)
-        black = Agent(build_model=False)
-        self.env = ChessEnv(white, black)
+        white = Agent()
+        black = Agent()
+        self.game = Game(ChessEnv(), white, black)
 
     @utils.time_function
     def run_state_to_input_test(self, n: int = 1):
@@ -57,9 +58,25 @@ class Test:
         for _ in range(50):
             mask = np.asarray([np.asarray([0 for _ in range(64)]).reshape(8, 8) for _ in range(73)])
     
+    @utils.time_function
+    def test_mcts_tree(self, n: int):
+        game = selfplay.setup()
+        game.white.run_simulations(n)
+
+        # get height of tree
+        print(f"Tree height: {utils.get_height_of_tree(game.white.mcts.root)}")
+
+        # plot tree
+        game.white.mcts.plot_tree(f"tests/mcts_tree_{n}_nodes.gv")
+        
+
 if __name__ == "__main__":
     test = Test()
-    test.run_state_to_input_test(n=20)
-    test.test_mask1()
-    test.test_mask2()
-    test.test_mask3()
+    # test.run_state_to_input_test(n=20)
+    # test.test_mask1()
+    # test.test_mask2()
+    # test.test_mask3()
+
+    test.test_mcts_tree(20)
+    test.test_mcts_tree(400)
+    test.test_mcts_tree(1200)
