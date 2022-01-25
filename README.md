@@ -53,7 +53,6 @@
 
 * Sample a mini-batch from a high amount of games
 * Train the network on the mini-batch
-* Use a custom loss function (TODO)
 
 ### Evaluate the network
 

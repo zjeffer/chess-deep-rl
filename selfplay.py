@@ -53,7 +53,7 @@ def multiprocessed_puzzle_solver(puzzles):
 
 if __name__ == "__main__":
     # the amount of games to play simultaneously
-    p_count = 1
+    p_count = 4
 
 
     with Pool(processes=p_count) as pool:

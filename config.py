@@ -1,7 +1,7 @@
 # config file: includes parameters for the model and the mcts tree
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 50
+SIMULATIONS_PER_MOVE = 20
 
 # exploration parameters 
 C_base = 20000 # defines how CPUCT grows

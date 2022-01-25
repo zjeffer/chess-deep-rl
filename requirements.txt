@@ -5,3 +5,6 @@ pandas
 tqdm
 typing_extensions
 graphviz
+pygame
+pygame-popup
+tensorflow-gpu

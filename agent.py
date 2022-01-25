@@ -32,8 +32,12 @@ class Agent:
             logging.info("Using server predictions")
             self.local_predictions = False
             # connect to the server to do predictions
-            self.socket_to_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket_to_server.connect((config.SOCKET_HOST, config.SOCKET_PORT))
+            try: 
+                self.socket_to_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.socket_to_server.connect((config.SOCKET_HOST, config.SOCKET_PORT))
+            except Exception as e:
+                print("Agent could not connect to the server: ", e)
+                exit(1)
             logging.info(f"Agent connected to server {config.SOCKET_HOST}:{config.SOCKET_PORT}")
 
         self.mcts = MCTS(self)

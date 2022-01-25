@@ -18,7 +18,7 @@ class Main:
         self.player = player
         
         # create an agent for the opponent
-        self.opponent = Agent(local_predictions=True, model_path="models/model_all_data.h5")
+        self.opponent = Agent()
 
         if self.player:
             self.game = Game(ChessEnv(), None, self.opponent)
@@ -30,7 +30,6 @@ class Main:
 
         # gui on main thread
         self.GUI = GUI(800, 800, player)
-        self.GUI.start()
         self.GUI.fen = self.game.env.board.fen()
         
         # create separate thread for game logic
@@ -70,23 +69,6 @@ class Main:
             except IndexError:
                 continue
         self.game.env.board.push(self.GUI.gameboard.board.move_stack[-1])
-
-    def get_player_move_by_text(self):
-        while True:
-            # get the move from the player
-            move = input("Enter your move: ")
-            # check if the move is valid
-            try:
-                # convert the move to a chess.Move object
-                print(move)
-                move = self.game.env.board.parse_san(move)
-            except ValueError:
-                print("Invalid move! Try again.")
-                continue
-            break
-        # play the move
-        self.game.env.board.push(move)
-        print(self.game.env.board)
 
     def opponent_move(self):
         self.previous_moves = self.game.play_move(stochastic=False, previous_moves=self.previous_moves, save_moves=False)

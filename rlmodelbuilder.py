@@ -65,12 +65,10 @@ class RLModelBuilder:
 
         model.compile(
             loss={
-                # TODO: change to better (own) loss function
                 'policy_head': 'categorical_crossentropy',
                 'value_head': 'mean_squared_error'
             },
             optimizer=adam.Adam(learning_rate=config.LEARNING_RATE),
-            # TODO: change loss weights
             loss_weights={
                 'policy_head': 0.5,
                 'value_head': 0.5
@@ -84,7 +82,6 @@ class RLModelBuilder:
         Builds a convolutional layer
         """
 
-        # TODO: change parameters for these layers (data_format, etc)
         layer = Conv2D(filters=self.convolution_filters, kernel_size=(3, 3), strides=(
             1, 1), padding='same', data_format='channels_first', use_bias=False)(input_layer)
         layer = BatchNormalization(axis=1)(layer)

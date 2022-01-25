@@ -54,10 +54,6 @@ class Board:
             self.btile, (int(self.square_size), int(self.square_size)))
 
         self.board = chess.Board()
-
-        # for click events
-        self.from_square = None
-        self.to_square = None
     
 
     def get_square_on_pos(self, x, y):
@@ -73,31 +69,18 @@ class Board:
     def tuple_to_square(x: int, y: int):
         return (7 - y)*8 + x
 
-    def move_piece(self, from_square, to_square):
+    @staticmethod
+    def square_to_string(square: int) -> str:
+        return chess.square_name(square)
+
+    def get_piece_to_move(self, from_square, to_square):
         from_square = Board.tuple_to_square(*from_square)
         to_square = Board.tuple_to_square(*to_square)
 
         # get piece from from_square
         piece = self.board.piece_at(from_square)
-        if piece is None:
-            return
-
-        from_square = chess.square_name(from_square)
-        to_square = chess.square_name(to_square)
         
-        if piece.piece_type == chess.PAWN and to_square[1] == '8' or to_square[1] == '1':
-            # TODO: promotion choice
-            print("Promotion")
-
-        # move piece to to_square
-        # create san from move
-        try:
-            move = self.board.parse_uci(f"{from_square}{to_square}")
-            self.board.push(move)
-        except ValueError:
-            print("Invalid move")
-
-
+        return piece
         
 
     def displayBoard(self):

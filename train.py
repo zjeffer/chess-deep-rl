@@ -51,6 +51,9 @@ class Trainer:
 
     @utils.time_function
     def train_all_data(self, data):
+        """
+        Train the model on all given data.
+        """
         history = []
         np.random.shuffle(data)
         X, y = self.split_Xy(data)
@@ -63,7 +66,7 @@ class Trainer:
         return history
 
     @utils.time_function
-    def train_model(self, data):
+    def train_random_batches(self, data):
         """
         Train the model on batches of data
 
@@ -102,11 +105,11 @@ class Trainer:
 
 if __name__ == "__main__":
     # use the last model
-    model = load_model(os.path.join(config.MODEL_FOLDER, "model_5.h5"))
+    model = load_model(os.path.join(config.MODEL_FOLDER, "model_6.h5"))
     # model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
     trainer = Trainer(model=model)
 
-    folder = config.MEMORY_DIR + "/old"
+    folder = config.MEMORY_DIR
     files = os.listdir(folder + "/")
     data = []
     print(f"Loading all games in {folder}...")
@@ -121,7 +124,7 @@ if __name__ == "__main__":
     # delete drawn games
     # data = data[data[:,2] != 0]
     print(f"Training with {len(data)} positions")
-    # history = trainer.train_model(data)
+    # history = trainer.train_random_batches(data)
     history = trainer.train_all_data(data)
     # plot history
     trainer.plot_loss(history)
