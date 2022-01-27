@@ -1,6 +1,5 @@
 import chess
 from chess import Move
-from collections.abc import Iterator
 from edge import Edge
 
 

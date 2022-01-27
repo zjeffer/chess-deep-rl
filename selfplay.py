@@ -28,7 +28,6 @@ def setup(starting_position: str = chess.STARTING_FEN) -> Game:
     white = Agent(state=env.board.fen())
     black = Agent(state=env.board.fen())
 
-    
     return Game(env=env, white=white, black=black)
 
 def multiprocessed_self_play(_ = None):
@@ -40,7 +39,6 @@ def multiprocessed_self_play(_ = None):
     # play games continuously
     while True:
         game.play_one_game(stochastic=True)
-    # game.create_puzzle_set(filename="puzzles/lichess_db_puzzle.csv")
 
 def multiprocessed_puzzle_solver(puzzles):
     """
@@ -56,8 +54,7 @@ def multiprocessed_puzzle_solver(puzzles):
 
 if __name__ == "__main__":
     # the amount of games to play simultaneously
-    p_count = 4
-
+    p_count = 1
 
     with Pool(processes=p_count) as pool:
         pool.map(multiprocessed_self_play, [None for _ in range(p_count)])

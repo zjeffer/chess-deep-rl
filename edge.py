@@ -2,7 +2,6 @@ from chess import Move
 import config
 import math
 import chess
-import utils
 
 class Edge:
     def __init__(self, input_node: "Node", output_node: "Node", action: Move, prior: float):

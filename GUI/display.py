@@ -144,6 +144,11 @@ class GUI:
                         self.from_square = None
                         self.to_square = None
                         continue
+                    if piece.color != self.gameboard.board.turn:
+                        print("Wrong color")
+                        self.from_square = None
+                        self.to_square = None
+                        continue
                     
                     to_square = Board.square_to_string(Board.tuple_to_square(*self.to_square))
                     if piece.piece_type == chess.PAWN and (to_square[1] == '8' or to_square[1] == '1'):
@@ -165,7 +170,8 @@ class GUI:
             if self.promoting:
                 move.promotion = piece
                 self.promoting = False
-            self.gameboard.board.push(move)
+            if self.gameboard.board.is_legal(move):
+                self.gameboard.board.push(move)
         except ValueError as e:
             print("Invalid move")
             raise(e)

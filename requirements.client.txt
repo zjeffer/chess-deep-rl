@@ -1,0 +1,11 @@
+python-chess
+matplotlib
+numpy
+pandas
+tqdm
+typing_extensions
+graphviz
+pygame
+pygame-popup
+tensorflow-gpu
+python-dotenv

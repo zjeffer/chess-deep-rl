@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import socket
 import time
 from tracemalloc import start
@@ -8,6 +9,9 @@ import config
 import numpy as np
 import threading
 import utils
+
+from dotenv import load_dotenv
+load_dotenv()
 
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -48,7 +52,7 @@ class ServerSocket:
 		self.sock.bind((self.host, self.port))
 		# listen for incoming connections, queue up to 24 requests
 		self.sock.listen(24)
-		logging.info("Server started.")
+		logging.info(f"Server started on {self.sock.getsockname()}")
 		try:
 			while True:
 				self.accept()
@@ -140,6 +144,6 @@ class ClientHandler(threading.Thread):
 
 if __name__ == "__main__":
 	# create the server socket and start the server
-	s = ServerSocket(config.SOCKET_HOST, config.SOCKET_PORT)
+	s = ServerSocket(os.environ.get("SOCKET_HOST", "0.0.0.0"), int(os.environ.get("SOCKET_PORT", 5000)))
 	s.start()
 	

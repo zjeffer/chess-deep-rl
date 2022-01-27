@@ -13,6 +13,9 @@ import json
 import numpy as np
 import chess
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class Agent:
     def __init__(self, local_predictions: bool = False, model_path = None, state=chess.STARTING_FEN):
@@ -35,11 +38,13 @@ class Agent:
             # connect to the server to do predictions
             try: 
                 self.socket_to_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.socket_to_server.connect((config.SOCKET_HOST, config.SOCKET_PORT))
+                server = os.environ.get("SOCKET_HOST", "localhost")
+                port = int(os.environ.get("SOCKET_PORT", 5000))
+                self.socket_to_server.connect((server, port))
             except Exception as e:
-                print("Agent could not connect to the server: ", e)
-                exit(1)
-            logging.info(f"Agent connected to server {config.SOCKET_HOST}:{config.SOCKET_PORT}")
+                print(f"Agent could not connect to the server at {server}:{port}: ", e)
+                raise e
+            logging.info(f"Agent connected to server {server}:{port}")
 
         self.mcts = MCTS(self, state=state)
         

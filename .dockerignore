@@ -1,0 +1,7 @@
+.git/
+img/
+memory/old/
+models/model_*
+plots/
+puzzles/
+tests/

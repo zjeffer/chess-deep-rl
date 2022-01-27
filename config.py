@@ -52,7 +52,7 @@ CONVOLUTION_FILTERS = 256
 AMOUNT_OF_RESIDUAL_BLOCKS = 19
 
 # where to save the model
-MODEL_FOLDER = './models/'
+MODEL_FOLDER = './models'
 
 # ============= TRAINING PARAMETERS =============
 BATCH_SIZE = 128
@@ -63,6 +63,4 @@ MEMORY_DIR = "./memory"
 MAX_REPLAY_MEMORY = 1000000
 
 # ============= SOCKET CONFIGURATION =============
-SOCKET_HOST = "0.0.0.0"
-SOCKET_PORT = 5000
 SOCKET_BUFFER_SIZE = 4096
