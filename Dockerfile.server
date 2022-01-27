@@ -1,17 +1,13 @@
 FROM nvidia/cuda:11.5.1-runtime-ubuntu20.04
 
-RUN apt update && apt upgrade -y
-RUN DEBIAN_FRONTEND=noninteractive apt install curl software-properties-common -y
-RUN add-apt-repository ppa:deadsnakes/ppa -y && apt install python3.10 python3.10-distutils -y
-RUN apt install libcudnn8 -y
+RUN apt update && apt upgrade -y && apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y
+RUN DEBIAN_FRONTEND=noninteractive apt install -y curl python3.10 python3.10-distutils libcudnn8
 
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
 COPY requirements.server.txt ./requirements.txt
 
-
-RUN python3.10 -m pip install --upgrade pip
-RUN python3.10 -m pip install -r requirements.txt
+RUN python3.10 -m pip install --upgrade pip && python3.10 -m pip install -r requirements.txt
 
 COPY server.py utils.py config.py mapper.py node.py edge.py ./
 COPY ./models/model.h5 ./models/
