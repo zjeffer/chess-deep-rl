@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 400))
+SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 300))
 
 # exploration parameters 
 C_base = 20000 # defines how CPUCT grows
@@ -56,7 +56,7 @@ CONVOLUTION_FILTERS = 256
 AMOUNT_OF_RESIDUAL_BLOCKS = 19
 
 # where to save the model
-MODEL_FOLDER = './models'
+MODEL_FOLDER = os.environ.get("MODEL_FOLDER" ,'./models')
 
 # ============= TRAINING PARAMETERS =============
 BATCH_SIZE = 128

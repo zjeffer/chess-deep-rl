@@ -195,9 +195,8 @@ class Game:
                 counter += 1
                 if counter > config.MAX_PUZZLE_MOVES:
                     logging.warning("Puzzle could not be solved within the move limit")
-                    solved = False
                     break
-            if not solved: 
+            if not self.env.board.is_game_over():
                 continue
             logging.info(f"Puzzle complete. Ended after {counter} moves: {self.env.board.result()}")
             # save game result to memory for all games

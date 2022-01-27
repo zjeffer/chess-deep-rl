@@ -39,5 +39,16 @@ class Evaluation:
 
 
 if __name__ == "__main__":
-	evaluation = Evaluation("models/model_4.h5", "models/model_5.h5")
-	print(evaluation.evaluate(5))
+	# get args
+	import argparse
+	parser = argparse.ArgumentParser(description="Evaluate two models")
+	parser.add_argument("model_1", help="Path to model 1", type=str)
+	parser.add_argument("model_2", help="Path to model 2", type=str)
+	parser.add_argument("nr_games", help="Number of games to play (x2: every model plays both white and black)", type=int)
+	args = parser.parse_args()
+
+	# args to dict
+	args = vars(args)
+	
+	evaluation = Evaluation(args["model_1"], args["model_2"])
+	print(evaluation.evaluate(int(args["nr_games"])))

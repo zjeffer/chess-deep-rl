@@ -1,3 +1,5 @@
+import argparse
+import os
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Activation, Dense, Dropout, Flatten, Conv2D, BatchNormalization, LeakyReLU, Input
@@ -136,3 +138,24 @@ class RLModelBuilder:
         model.add(Dense(self.output_shape[1],
                   activation='tanh', name='value_head'))
         return model
+
+
+if __name__ == "__main__":
+    # parse arguments
+    parser = argparse.ArgumentParser(description='Create the neural network for chess')
+    parser.add_argument('--model-folder', type=str, default='models/', help='Folder to save the model')
+    parser.add_argument('--model-name', type=str, default='model', help='Name of the model (without extension')
+    args = parser.parse_args()
+    args = vars(args)
+
+    # create the model
+    model_builder = RLModelBuilder(input_shape = config.INPUT_SHAPE, output_shape = config.OUTPUT_SHAPE)
+    model = model_builder.build_model()
+
+    # create folders if they don't exist
+    if not os.path.exists(args['model_folder']):
+        os.makedirs(args['model_folder'])
+
+    # save the model
+    print(f"Saving model to {args['model_folder']} as {args['model_name']}.h5 ...")
+    model.save(os.path.join(args['model_folder'], args['model_name']) + '.h5')
