@@ -43,7 +43,7 @@ class Agent:
                 self.socket_to_server.connect((server, port))
             except Exception as e:
                 print(f"Agent could not connect to the server at {server}:{port}: ", e)
-                raise e
+                exit(1)
             logging.info(f"Agent connected to server {server}:{port}")
 
         self.mcts = MCTS(self, state=state)

@@ -9,7 +9,7 @@ services:
       - 5000
     privileged: true
     environment:
-      - SOCKET_HOST="localhost"
+      - SOCKET_HOST=0.0.0.0
       - SOCKET_PORT=5000
     deploy:
       resources:
@@ -18,13 +18,16 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    networks:
+      - default
   selfplay-client:
     build:
       context: .
       dockerfile: Dockerfile.client
     environment:
-      - SOCKET_HOST="prediction-server"
+      - SOCKET_HOST=prediction-server
       - SOCKET_PORT=5000
+      - SIMULATIONS_PER_MOVE=300
     volumes:
       - ./memory:/memory
     depends_on:
@@ -34,4 +37,11 @@ services:
       restart_policy:
         condition: on-failure
         delay: 5s
-        max_attempts: 5
+        max_attempts: 3
+    networks:
+      - default
+  
+networks:
+  default:
+    driver: bridge
+    name: chess-rl-network

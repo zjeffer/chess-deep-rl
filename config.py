@@ -1,13 +1,17 @@
 # config file: includes parameters for the model and the mcts tree
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = 20
+SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 400))
 
 # exploration parameters 
 C_base = 20000 # defines how CPUCT grows
 C_init = 2
 
-# if stochastic, use epsilon-greedy to only sometimes pick moves from the prob dist
+# if stochastic, use epsilon-greedy to not always pick moves from the prob dist,
+# but sometimes pick deterministically
 EPSILON = 0.8
 
 # limit the amount of moves played in a game
@@ -41,7 +45,7 @@ OUTPUT_SHAPE = (8*8*amount_of_planes, 1)
 
 
 # ============= NEURAL NETWORK PARAMETERS =============
-# TODO: change if necessary. AZ started with 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
+# change if necessary. AZ started with 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
 LEARNING_RATE = 0.2
 # filters for the convolutional layers (AZ: 256)
 CONVOLUTION_FILTERS = 256

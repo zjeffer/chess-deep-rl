@@ -1,12 +1,15 @@
 import logging
 from multiprocessing import Pool
+# disable tensorflow info messages
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import socket
 import time
 from agent import Agent
 from chessEnv import ChessEnv
 from game import Game
 import config
 import numpy as np
-import os
 import chess
 
 # set logging config
@@ -53,11 +56,27 @@ def multiprocessed_puzzle_solver(puzzles):
         game.train_puzzles()
 
 if __name__ == "__main__":
-    # the amount of games to play simultaneously
-    p_count = 1
+    # wait until server is ready
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server = os.environ.get("SOCKET_HOST", "localhost")
+    port = int(os.environ.get("SOCKET_PORT", 5000))
 
-    with Pool(processes=p_count) as pool:
-        pool.map(multiprocessed_self_play, [None for _ in range(p_count)])
+    print("Checking if server is ready...")
+    while s.connect_ex((server, port)) != 0:
+        print(f"Waiting for server at {server}:{port}")
+        time.sleep(3)
+    print(f"Server is ready on {s.getsockname()}!")
+    s.close()
+    
+    multiprocessed_self_play()
+
+
+    # ======== if not in docker, run multiple processes here: ========
+    # the amount of games to play simultaneously
+    # p_count = 1
+
+    # with Pool(processes=p_count) as pool:
+    #     pool.map(multiprocessed_self_play, [None for _ in range(p_count)])
 
     # multiprocessed puzzle solver
     # with Pool(processes=p_count) as pool:
