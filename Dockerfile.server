@@ -10,6 +10,5 @@ COPY requirements.server.txt ./requirements.txt
 RUN python3.10 -m pip install --upgrade pip && python3.10 -m pip install -r requirements.txt
 
 COPY server.py utils.py config.py mapper.py node.py edge.py ./
-COPY ./models/model.h5 ./models/
 
 CMD ["python3.10", "server.py"]
