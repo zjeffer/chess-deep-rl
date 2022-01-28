@@ -38,6 +38,7 @@ class Agent:
             # connect to the server to do predictions
             try: 
                 self.socket_to_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.socket_to_server.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 server = os.environ.get("SOCKET_HOST", "localhost")
                 port = int(os.environ.get("SOCKET_PORT", 5000))
                 self.socket_to_server.connect((server, port))
@@ -84,11 +85,12 @@ class Agent:
             return p.numpy(), v[0][0]
         return self.predict_server(data)
 
-    def predict_server(self, data):
+    def predict_server(self, data: np.ndarray):
         """
         Send data to the server and get the prediction
         """
         # send data to server
+        self.socket_to_server.send(f"{len(data.flatten()):010d}".encode('ascii'))
         self.socket_to_server.send(data)
         # get msg length
         data_length = self.socket_to_server.recv(10)

@@ -49,6 +49,7 @@ class ServerSocket:
 		logging.info(f"Starting server on {self.host}:{self.port}...")
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 		self.sock.bind((self.host, self.port))
 		# listen for incoming connections, queue up to 24 requests
 		self.sock.listen(24)
@@ -115,7 +116,12 @@ class ClientHandler(threading.Thread):
 		"""
 		data = None
 		try:
-			data = utils.recvall(self.sock)
+			data_length = self.sock.recv(10)
+			if data_length == b'':
+				# this happens if the socket connects and then closes without sending data
+				return data
+			data_length = int(data_length.decode("ascii"))
+			data = utils.recvall(self.sock, data_length)
 			if len(data) != 1216:
 				data = None
 				raise ValueError("Invalid data length, closing socket")

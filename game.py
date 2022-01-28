@@ -5,15 +5,12 @@ from agent import Agent
 import utils
 import logging
 import config
-import chess
 from chess.pgn import Game as ChessGame
 from edge import Edge
 from mcts import MCTS
 import uuid
 import pandas as pd
 import numpy as np
-import socket
-import json
 
 class Game:
     def __init__(self, env: ChessEnv, white: Agent, black: Agent):
@@ -58,9 +55,10 @@ class Game:
             logging.info(f"\n{self.env.board}")
             logging.info(f"Value according to white: {self.white.mcts.root.value}")
             logging.info(f"Value according to black: {self.black.mcts.root.value}")
+
             # end if the game drags on too long
             counter += 1
-            if counter > config.MAX_GAME_MOVES:
+            if counter > config.MAX_GAME_MOVES or self.env.board.is_repetition(3):
                 # estimate the winner based on piece values
                 winner = ChessEnv.estimate_winner(self.env.board)
                 logging.info(f"Game over by move limit ({config.MAX_GAME_MOVES}). Result: {winner}")

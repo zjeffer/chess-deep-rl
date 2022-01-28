@@ -61,9 +61,12 @@ class Main:
 
     def get_player_move(self):
         while True:
-            time.sleep(0.1)
+            time.sleep(0.2)
             # break when the player has made a move
-            try: 
+            try:
+                if len(self.GUI.gameboard.board.move_stack) and not len(self.game.env.board.move_stack):
+                    # player has made a move, but the move has not been added to the game yet
+                    break
                 if self.game.env.board.move_stack[-1] != self.GUI.gameboard.board.move_stack[-1]:
                     break
             except IndexError:
@@ -75,5 +78,5 @@ class Main:
 
 
 if __name__ == "__main__":
-    m = Main(False)
+    m = Main()
     

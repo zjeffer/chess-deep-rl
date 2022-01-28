@@ -105,7 +105,7 @@ class Trainer:
 
 if __name__ == "__main__":
     # use the last model
-    model = load_model(os.path.join(config.MODEL_FOLDER, "model_4.h5"))
+    model = load_model(os.path.join(config.MODEL_FOLDER, "model_8.h5"))
     # model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
     trainer = Trainer(model=model)
 
