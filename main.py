@@ -6,6 +6,7 @@ import numpy as np
 from chessEnv import ChessEnv
 from game import Game
 from agent import Agent
+import argparse
 import logging
 logging.basicConfig(level=logging.INFO, format=" %(message)s")
 logging.disable(logging.WARN)
@@ -13,11 +14,11 @@ logging.disable(logging.WARN)
 from GUI.display import GUI
 
 class Main:
-    def __init__(self, player: bool = np.random.choice([True, False])):
+    def __init__(self, player: bool, local_predictions: bool = False, model_path: str = None):
         self.player = player
         
         # create an agent for the opponent
-        self.opponent = Agent()
+        self.opponent = Agent(local_predictions=local_predictions, model_path=model_path)
 
         if self.player:
             self.game = Game(ChessEnv(), None, self.opponent)
@@ -82,5 +83,25 @@ class Main:
 
 
 if __name__ == "__main__":
-    m = Main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--player", type=str, default=None, choices=('white', 'black'), help="Whether to play as white or black. No argument means random.")
+    parser.add_argument('--local-predictions', action='store_true', help='Use local predictions instead of the server')
+    parser.add_argument("--model", type=str, default=None, help="For local predictions: specify the path to the model to use.")
+    args = parser.parse_args()
+    args = vars(args)
+
+    if args["local_predictions"]:
+        if args["model"] is None:
+            print("When using local predictions, specify the path to the model to use.")
+            exit(1)
+    
+    model_path = args["model"]
+    local_predictions = args["local_predictions"]
+    
+    if args['player']:
+        player = args['player'].lower().strip() == 'white'
+    else:
+        player = np.random.choice([True, False])
+
+    m = Main(player, local_predictions, model_path)
     
