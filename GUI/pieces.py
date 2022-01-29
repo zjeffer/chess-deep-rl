@@ -13,19 +13,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 IMAGE_DIR = os.path.join(BASE_DIR, 'images')
 
 
-# class PieceColor:
-#     BLACK = 'BLACK'
-#     WHITE = 'WHITE'
-
-# class PieceType:
-#     BISHOP = 'BISHOP'
-#     KING = 'KING'
-#     KNIGHT = 'KNIGHT'
-#     PAWN = 'PAWN'
-#     QUEEN = 'QUEEN'
-#     ROOK = 'ROOK'
-
-
 class PieceImage:
     bBishop = pygame.image.load(os.path.join(IMAGE_DIR, 'bB.png'))
     bKing = pygame.image.load(os.path.join(IMAGE_DIR, 'bK.png'))

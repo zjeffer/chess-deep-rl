@@ -3,9 +3,6 @@ version: "3.8"
 services:
   prediction-server:
     image: ghcr.io/zjeffer/chess-rl_prediction-server:latest
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile.server
     expose:
       - 5000
     privileged: true
@@ -26,9 +23,6 @@ services:
       - default
   selfplay-client:
     image: ghcr.io/zjeffer/chess-rl_selfplay-client:latest
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile.client
     environment:
       - SOCKET_HOST=prediction-server
       - SOCKET_PORT=5000
@@ -43,6 +37,7 @@ services:
         condition: on-failure
         delay: 5s
         max_attempts: 3
+        window: 10s
     networks:
       - default
   

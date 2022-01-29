@@ -1,3 +1,4 @@
+import argparse
 import os
 import time
 from typing import Tuple
@@ -13,7 +14,7 @@ import pandas as pd
 import uuid
 import utils
 from tqdm import tqdm
-from rlmodelbuilder import RLModelBuilder
+from datetime import datetime
 
 class Trainer:
     def __init__(self, model: Model):
@@ -27,7 +28,6 @@ class Trainer:
             np.random.shuffle(data)
             return data[:self.batch_size]
 
-    @utils.time_function
     def split_Xy(self, data) -> Tuple[np.ndarray, np.ndarray]:
         # board to input format (19x8x8)
         X = np.array([ChessEnv.state_to_input(i[0])[0] for i in data])
@@ -49,23 +49,22 @@ class Trainer:
                 "value_head": y_value
             }, return_dict=True)
 
-    @utils.time_function
     def train_all_data(self, data):
         """
         Train the model on all given data.
         """
         history = []
         np.random.shuffle(data)
+        print("Splitting data into labels and target...")
         X, y = self.split_Xy(data)
+        print("Training batches...")
         for part in tqdm(range(len(X)//self.batch_size)):
             start = part * self.batch_size
             end = start + self.batch_size
             losses = self.train_batch(X[start:end], y[0][start:end], y[1][start:end])
             history.append(losses)
-            save_model(self.model, os.path.join(config.MODEL_FOLDER, "model_all_data.h5"))
         return history
 
-    @utils.time_function
     def train_random_batches(self, data):
         """
         Train the model on batches of data
@@ -84,9 +83,6 @@ class Trainer:
             
             losses = self.train_batch(X_batch, y_probs_batch, y_value_batch)
             history.append(losses)
-        
-        # save the new model
-        save_model(self.model, os.path.join(config.MODEL_FOLDER, "model.h5"))
         return history
 
     def plot_loss(self, history):
@@ -103,13 +99,24 @@ class Trainer:
         plt.savefig(f'{config.LOSS_PLOTS_FOLDER}/loss-{str(uuid.uuid4())[:8]}.png')
         del df
 
+    def save_model(self):
+        path = f"model-{datetime.now().strftime('%Y-%M-%d_%H:%m:%S')}.h5"
+        save_model(self.model, path)
+        print(f"Model trained. Saved model to {path}")
+
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Train the model')
+    parser.add_argument('--model', type=str, help='The model to train')
+    parser.add_argument('--data-folder', type=str, help='The data folder to train on')
+    args = parser.parse_args()
+    args = vars(args)
+
     # use the last model
-    model = load_model(os.path.join(config.MODEL_FOLDER, "model_8.h5"))
-    # model = RLModelBuilder(config.INPUT_SHAPE, config.OUTPUT_SHAPE).build_model()
+    model = load_model(args["model"])
     trainer = Trainer(model=model)
 
-    folder = config.MEMORY_DIR
+    folder = args['data_folder']
     files = os.listdir(folder + "/")
     data = []
     print(f"Loading all games in {folder}...")
@@ -128,4 +135,5 @@ if __name__ == "__main__":
     history = trainer.train_all_data(data)
     # plot history
     trainer.plot_loss(history)
-
+    # save the new model
+    trainer.save_model()

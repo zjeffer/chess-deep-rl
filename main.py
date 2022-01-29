@@ -9,7 +9,6 @@ from agent import Agent
 import logging
 logging.basicConfig(level=logging.INFO, format=" %(message)s")
 logging.disable(logging.WARN)
-import chess
 
 from GUI.display import GUI
 
@@ -24,6 +23,10 @@ class Main:
             self.game = Game(ChessEnv(), None, self.opponent)
         else:
             self.game = Game(ChessEnv(), self.opponent, None)
+
+        print("*"*50)
+        print(f"You play the {'white' if self.player else 'black'} pieces!")
+        print("*"*50)
 
         # previous moves (for the opponent's MCTS)
         self.previous_moves = (None, None)
@@ -74,6 +77,7 @@ class Main:
         self.game.env.board.push(self.GUI.gameboard.board.move_stack[-1])
 
     def opponent_move(self):
+        self.GUI.gameboard.selected_square = None
         self.previous_moves = self.game.play_move(stochastic=False, previous_moves=self.previous_moves, save_moves=False)
 
 

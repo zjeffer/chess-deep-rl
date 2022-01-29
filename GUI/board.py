@@ -13,7 +13,7 @@ import chess
 
 from pygame.surface import Surface
 
-from .pieces import PieceImage, chess, chess
+from .pieces import PieceImage
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +23,7 @@ IMAGE_DIR = os.path.join(BASE_DIR, 'images')
 class Board:
     btile = pygame.image.load(os.path.join(IMAGE_DIR, 'btile.png'))
     wtile = pygame.image.load(os.path.join(IMAGE_DIR, 'wtile.png'))
+    tile_selected = pygame.image.load(os.path.join(IMAGE_DIR, 'tile-selected.png'))
 
     def __init__(self, colors: dict, BGCOLOR: tuple, DISPLAYSURF: Surface, width: int, height: int):
         self.colors = colors
@@ -49,31 +50,36 @@ class Board:
 
         # change size of wtile and btile
         Board.wtile = pygame.transform.scale(
-            self.wtile, (int(self.square_size), int(self.square_size)))
+            Board.wtile, (int(self.square_size), int(self.square_size)))
         Board.btile = pygame.transform.scale(
-            self.btile, (int(self.square_size), int(self.square_size)))
+            Board.btile, (int(self.square_size), int(self.square_size)))
+        Board.tile_selected = pygame.transform.scale(
+            Board.tile_selected, (int(self.square_size), int(self.square_size)))
+        # keep the currently selected square
+        self.selected_square = None
+
 
         self.board = chess.Board()
     
 
-    def get_square_on_pos(self, x, y):
+    def get_square_on_pos(self, x, y) -> Tuple[int, int]:
         # calculate the square based on mouse position
         square = (int(x / self.square_size), int(y / self.square_size))
         return square
 
     @staticmethod
-    def square_to_tuple(square: int):
+    def square_to_tuple(square: int) -> Tuple[int, int]:
         return (square % 8, 7 - (square // 8))
     
     @staticmethod
-    def tuple_to_square(x: int, y: int):
+    def tuple_to_square(x: int, y: int) -> int:
         return (7 - y)*8 + x
 
     @staticmethod
     def square_to_string(square: int) -> str:
         return chess.square_name(square)
 
-    def get_piece_to_move(self, from_square, to_square):
+    def get_piece_to_move(self, from_square, to_square) -> chess.Piece:
         from_square = Board.tuple_to_square(*from_square)
         to_square = Board.tuple_to_square(*to_square)
 
@@ -83,7 +89,7 @@ class Board:
         return piece
         
 
-    def displayBoard(self):
+    def displayBoard(self) -> None:
         """
         Displays the board tiles on the screen
         """
@@ -96,13 +102,21 @@ class Board:
         self.drawTiles()
 
     def drawTiles(self):
-        for i in range(1, len(Board.boardRect)+1):
-            for j in range(1, len(Board.boardRect[i-1])+1):
-                if Board.isEven(i) and Board.isEven(j) or not Board.isEven(i) and not Board.isEven(j):
-                    tile = Board.wtile
+        for i in range(len(Board.boardRect)):
+            for j in range(len(Board.boardRect[i])):
+                if self.is_selected(i, j):
+                    tile = Board.tile_selected
+                elif Board.isEven(i) and Board.isEven(j) or not Board.isEven(i) and not Board.isEven(j):
+                        tile = Board.wtile
                 else:
-                    tile = Board.btile
-                self.DISPLAYSURF.blit(tile, Board.boardRect[i-1][j-1])
+                        tile = Board.btile
+                self.DISPLAYSURF.blit(tile, Board.boardRect[i][j])
+
+    def is_selected(self, i: int, j: int) -> bool:
+        """
+        Returns True if a tile is selected, else false
+        """
+        return self.selected_square == (j, i)
 
     @staticmethod
     def isEven(n):
