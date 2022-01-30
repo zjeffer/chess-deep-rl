@@ -3,12 +3,12 @@
 # How does it work?
 
 
-![Playing one move](img/ChessRL-schematic.png "Playing one move")
+![Playing one move](code/img/ChessRL-schematic.png "Playing one move")
 
 
 ### Every move, run a high number amount of MCTS simulations:
 
-![MCTS steps for 1 simulation](img/MCTS-steps.png "MCTS steps for 1 simulation")
+![MCTS steps for 1 simulation](code/img/MCTS-steps.png "MCTS steps for 1 simulation")
 
 > Image source: https://sebastianbodenstein.net/post/alphazero/
 
@@ -61,17 +61,17 @@ against the previous best for a high amount of games. Whoever wins the most game
 
 ### Class structure
 
-![Class structure](img/class-structure.png "Class structure")
+![Class structure](code/img/class-structure.png "Class structure")
 
 Each player needs to have its own agent object. Every agent has its own 
 MCTS tree and neural network.
 
 ### Multi-processing improvements 
 
-![Self-play without multiprocessing](img/without-multiprocessing.png "Self-play without multiprocessing")
+![Self-play without multiprocessing](code/img/without-multiprocessing.png "Self-play without multiprocessing")
 
 
-![Self-play with multiprocessing](img/with-multiprocessing.png "Self-play with multiprocessing")
+![Self-play with multiprocessing](code/img/with-multiprocessing.png "Self-play with multiprocessing")
 
 With a good system as a server (Ryzen 7 5800H + RTX 3070 Mobile), multiple clients (including clients on the system itself) can be connected to the server. 
 
