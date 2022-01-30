@@ -1,0 +1,92 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage[margin=3cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{wrapfig}
+\usepackage[parfill]{parskip}
+
+
+\usepackage{tcolorbox}
+
+
+% fonts
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+\graphicspath{{img/}}
+
+% theorem environment
+\usepackage{amssymb}
+
+\newtheorem{theorem}{Definition}[section]
+
+\usepackage{enumitem}
+
+\newenvironment{thmenum}
+ {\begin{enumerate}[label=\upshape\bfseries(\roman*)]}
+ {\end{enumerate}}
+
+
+% code
+\usepackage{minted}
+\setminted{frame=single,framesep=3pt,linenos}
+\usepackage{upquote}
+\usepackage{color}
+
+\begin{document}
+
+\begin{titlepage}
+    \author{Tuur Vanhoutte}
+    \title{Chess with Deep Reinforcement Learning: Installation Manual}
+\end{titlepage}
+
+\pagenumbering{gobble}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\pagenumbering{arabic}
+
+\section{Requirements}
+
+\subsection{The system}
+
+\begin{itemize}
+	\item An Nvidia GPU with at least 3GB of VRAM
+	\item A good CPU that can handle the MCTS algorithm
+	\item At least 5GB of free RAM
+\end{itemize}
+
+\subsection{Python packages (for local/non-dockerized use)}
+
+\begin{enumerate}
+	\item Install the latest version of Python (I used Python 3.10). 
+	\item In a terminal, run the following commands:
+\end{enumerate}
+
+\begin{minted}{sh}
+python3 -m pip install pip --upgrade
+python3 -m pip install -r requirements.client.text
+python3 -m pip install -r requirements.server.text
+\end{minted}
+
+\subsection{Docker}
+
+The software comes with two Docker images and a docker-compose file.
+This is used to create a training set using self-play. 
+To make sure the GPU can be used inside the server's Docker container,
+follow these instructions to install Docker and the Docker utility engine:
+
+\url{https://docs.nvidia.com/ai-enterprise/deployment-guide/dg-docker.html}
+
+Using these images, it is possible to deploy a whole cluster of servers and clients,
+to create a training set in parallel.
+
+\end{document}
