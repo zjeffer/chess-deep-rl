@@ -1,18 +1,48 @@
-# Chess engine using Deep Reinforcement learning
+# Chess engine with Deep Reinforcement learning
 
-To download my pretrained model, use this link: [https://studenthowest-my.sharepoint.com/:u:/g/personal/tuur_vanhoutte_student_howest_be/ERs9S6KqbtdGgC9eVunsjJcBR0VRuUnbGnTmOaWde6Utvw]
+To download my pretrained model, use this link: https://studenthowest-my.sharepoint.com/:u:/g/personal/tuur_vanhoutte_student_howest_be/ERs9S6KqbtdGgC9eVunsjJcBR0VRuUnbGnTmOaWde6Utvw
 
 Put the model.h5 file in the models/ folder.
 
-# How does it work?
+## How does it work?
 
+This chess engine is based on AlphaZero by Deepmind. It uses a neural network
+to predict the next best move. The neural network learns by playing against
+itself for a high amount of games, and using their results to train the network.
+The newly trained neural network is evaluated against the old network by playing
+many games against each other, and the best network is kept. This process is repeated
+for a long time.
 
 ![Playing one move](code/img/ChessRL-schematic.png "Playing one move")
 
+Every move, run a high number amount of MCTS simulations. AlphaZero uses an custom version of
+MCTS.
 
-### Every move, run a high number amount of MCTS simulations:
+### Normal Monte Carlo Tree Search:
 
-![MCTS steps for 1 simulation](code/img/MCTS-steps.png "MCTS steps for 1 simulation")
+https://en.wikipedia.org/wiki/Monte_Carlo_tree_search
+
+1. **Selection:** Traverse the tree **randomly** until a leaf node is reached.
+2. **Expansion:** expand the leaf node by creating a child for every possible action
+3. **Simulation:** 'rollout' the game by randomly choosing moves until the end of the game.
+4. **Backpropagation:** backpropagate the result of the rollout to the root node.
+
+In chess, normal MCTS would be incredibly inefficient, because the amount of actions
+every position can have is too high (step 1), and the length of the game can be very long
+when choosing random moves (step 3).
+
+![Monte Carlo Tree Search](code/img/MCTS-wikipedia.png "Monte Carlo Tree Search")
+
+> Image source: By Rmoss92 - Own work, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=88889583
+
+### AlphaZero's MCTS
+
+AlphaZero uses a different kind of MCTS: 
+
+* step 1 (Selection) is not random, but based on neural network predictions and upper confidence bound
+* step 3 (Simulation) is replaced by the value prediction received by the neural network (Evaluation)
+
+![MCTS steps for 1 simulation](code/img/MCTS-alphazero.png "MCTS steps for 1 simulation")
 
 > Image source: https://sebastianbodenstein.net/post/alphazero/
 
@@ -21,7 +51,7 @@ Put the model.h5 file in the models/ folder.
 1. To traverse the tree, keep selecting the edges with maximum Q+U value
 	* Q = mean value of the state over all simulations
 	* U = upper confidence bound
-	* Do this until a leaf node is reached
+	* Do this until a leaf node is reached (= a node which has not been visited/expanded yet)
 2. Expand the leaf node by adding a new edge for every possible action in the state
 	* Input the leaf node into the neural network
 	* The output:
@@ -70,7 +100,7 @@ against the previous best for a high amount of games. Whoever wins the most game
 Each player needs to have its own agent object. Every agent has its own 
 MCTS tree and neural network.
 
-### Multi-processing improvements 
+### Multi-processing improvements
 
 ![Self-play without multiprocessing](code/img/without-multiprocessing.png "Self-play without multiprocessing")
 
