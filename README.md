@@ -1,5 +1,9 @@
 # Chess engine using Deep Reinforcement learning
 
+To download my pretrained model, use this link: [https://studenthowest-my.sharepoint.com/:u:/g/personal/tuur_vanhoutte_student_howest_be/ERs9S6KqbtdGgC9eVunsjJcBR0VRuUnbGnTmOaWde6Utvw]
+
+Put the model.h5 file in the models/ folder.
+
 # How does it work?
 
 
