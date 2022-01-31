@@ -4,10 +4,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 300))
+SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 50))
 
 # exploration parameters 
-C_base = 20000 # defines how CPUCT grows
+C_base = 20000
 C_init = 2
 
 # if stochastic, use epsilon-greedy to not always pick moves from the prob dist,

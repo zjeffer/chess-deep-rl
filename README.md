@@ -4,7 +4,15 @@ To download my pretrained model, use this link: https://studenthowest-my.sharepo
 
 Put the model.h5 file in the models/ folder.
 
-## How does it work?
+## How do normal chess engines work?
+
+Normal chess engines work with the minimax algorithm: the engine tries to find the best move by creating a tree of all possible moves to a certain depth, and cutting down paths that lead to bad positions (alpha-beta pruning). It evaluates a position based on which pieces are on the board.
+
+![Alpha-Beta pruning in Minimax](code/img/AB_pruning.png)
+
+> Image source: By Jez9999, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=3708424
+
+## How does my chess engine work?
 
 This chess engine is based on AlphaZero by Deepmind. It uses a neural network
 to predict the next best move. The neural network learns by playing against
@@ -15,8 +23,7 @@ for a long time.
 
 ![Playing one move](code/img/ChessRL-schematic.png "Playing one move")
 
-Every move, run a high number amount of MCTS simulations. AlphaZero uses an custom version of
-MCTS.
+Every move, run a high number amount of MCTS simulations. AlphaZero uses an custom version of MCTS.
 
 ### Normal Monte Carlo Tree Search:
 
@@ -73,32 +80,50 @@ AlphaZero uses a different kind of MCTS:
 ### After these simulations, the move can be chosen:
 
 * The move with greatest $N$ (deterministically)
-* According to a distribution (stochastically): $\pi \sim N^{\frac{1}{T}}$, T = temperature control
+* According to a distribution (stochastically): $\pi \sim N$
+
+![Choose move from tree](code/img/MCTS-choose-move.png "Choose move from tree")
+
 
 ### Creating a training set
 
+* To train the network, you need a lot of data
+* You create this data through self-play: letting the AI play against a copy of itself for many games.
 * For every move, store:
 	* The state
 	* The search probabilities
 	* The winner, (added once the game is over)
 
-
 ### Training the network
 
-* Sample a mini-batch from a high amount of games
+* Sample a mini-batch from a high amount of positions (see training set)
 * Train the network on the mini-batch
+
+![Creating a training set](code/img/training.png "Creating a training set")
+
+> Trophy icon by Freepik https://www.flaticon.com/authors/freepik
+
+
+| First training session | Second training session |
+|:-:| :-: |
+|![First training session](code/plots/first-training.png) | ![Second training session](code/plots/second-training-0.002.png) |
 
 ### Evaluate the network
 
-To know whether the new network is better than the previous one, let the new network play
-against the previous best for a high amount of games. Whoever wins the most games, is the new best network.
+To know whether the new network is better than the previous one, let the new network play against the previous best for a high amount of games. Whoever wins the most games, is the new best network.
 
-### Class structure
+Use that network to self-play again. Repeat indefinitely.
 
-![Class structure](code/img/class-structure.png "Class structure")
+I tried this with the newest network against a completely random neural network. These are the results after 10 games:
 
-Each player needs to have its own agent object. Every agent has its own 
-MCTS tree and neural network.
+```
+Evaluated these models: Model 1 = models/randommodel.h5, Model 2 = models/model.h5
+The results:
+Model 1: 0
+Model 2: 5
+Draws: 5
+```
+
 
 ### Multi-processing improvements
 
@@ -117,8 +142,20 @@ The result: much faster self-play. The other clients' GPUs do not get used, mean
 |R7 5800H + RTX 3070|50 sims/sec|30 sims/sec each process|
 |i7 7700HQ + GTX 1050|20 sims/sec|15 sims/sec each process|
 
+I dockerized this server-client system so it can be deployed on a cluster.
+You can find the configuration in code/docker-compose.yml, and the Dockerfiles in code/Dockerfile{client,server}.
+The docker images are also pushed to `ghcr.io`: 
 
-# Useful sources
+* The server: https://ghcr.io/zjeffer/chess-rl_prediction-server:latest
+	* There is also a special server image if you're using an older Nvidia version (470 and CUDA 11.4): 
+	* https://ghcr.io/zjeffer/chess-rl_prediction-server:cuda-11.4
+* The client: https://ghcr.io/zjeffer/chess-rl_selfplay-client:latest
+
+# Installation and user manual
+
+The installation manual and the user manual can both be found under `./documents/`
+
+# Sources
 
 ### Wikipedia articles & Library documentation
 
