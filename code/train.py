@@ -125,9 +125,9 @@ if __name__ == "__main__":
             data.append(np.load(f"{folder}/{file}", allow_pickle=True))
     data = np.concatenate(data)
     # count where third field is 0
-    print(f"{len(data[data[:,2] == 1])} games won by white")
-    print(f"{len(data[data[:,2] == -1])} games won by black")
-    print(f"{len(data[data[:,2] == 0])} games drawn")
+    print(f"{len(data[data[:,2] == 1])} positions won by white")
+    print(f"{len(data[data[:,2] == -1])} positions won by black")
+    print(f"{len(data[data[:,2] == 0])} positions drawn")
     # delete drawn games
     # data = data[data[:,2] != 0]
     print(f"Training with {len(data)} positions")
