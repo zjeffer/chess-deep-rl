@@ -23,6 +23,18 @@ for a long time.
 
 ![Playing one move](code/img/ChessRL-schematic.png "Playing one move")
 
+### The neural network
+
+* Input layer: 19 8x8 boards of booleans
+* 20 hidden layers:
+	* Convolutional hidden layer
+	* 19 residual blocks with skip-connections
+* 2 outputs:
+	1. The win probabilities of each move (73 boards of 8x8 booleans)
+	2. The value of the given board (scalar)
+
+=> 30+ million parameters
+
 Every move, run a high number amount of MCTS simulations. AlphaZero uses an custom version of MCTS.
 
 ### Normal Monte Carlo Tree Search:

@@ -1,7 +1,8 @@
 __pycache__
 models/[^.]*
 memory/[^.]*
-plots/[^.]*
+plots/old/*
+plots/loss-*.png
 puzzles/[^.]*
 progress.md
 full_games.txt
