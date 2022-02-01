@@ -25,7 +25,14 @@ def setup(starting_position: str = chess.STARTING_FEN, local_predictions=False) 
     This can be used in both the self-play and puzzle solving function
     """
     # set different random seeds for each process
-    np.random.seed((os.getpid() * int(time.time())) % 123456789)
+    number = int.from_bytes(socket.gethostname().encode(), 'little')
+    number *= os.getpid() if os.getpid() != 0 else 1
+    number *= int(time.time())
+    number %= 123456789
+    
+    np.random.seed(number)
+    print(f"========== > Setup. Test Random number: {np.random.randint(0, 123456789)}")
+
 
     # create environment and game
     env = ChessEnv(fen=starting_position)
