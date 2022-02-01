@@ -8,22 +8,11 @@ from mapper import Mapping
 import config
 from node import Node
 
-def save_input_state_to_imgs(input_state: np.ndarray, path: str, names: list = None, only_full: bool = False):
+def save_input_state_to_imgs(input_state: np.ndarray, path: str):
     """
     Save an input state to images
     """
     start_time = time.time()
-    if not only_full:
-        for index, plane in enumerate(input_state):
-            # save boolean 2d array to image
-            img = Image.fromarray(plane)
-            # save image
-            if names is not None and len(names) == len(input_state):
-                # print index, with one leading 0
-                img.save(f"{path}/{index:02d}-{names[index]}.png")
-            else:
-                img.save(f"{path}/{index:02d}.png")
-
     # full image of all states
     # convert booleans to integers
     input_state = np.array(input_state)*np.uint8(255)

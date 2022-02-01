@@ -17,24 +17,19 @@ class Test:
 
 
     @utils.time_function
-    def run_state_to_input_test(self, n: int = 1):
-        for _ in range(n):
-            # test en passant
-            for move in ["e4", "a5", "e5", "Nc6", "d4", "d5"]:
-                self.env.step(move)
-            
-            
+    def run_state_to_input_test(self):
+        board = chess.Board()
+        # test en passant
+        for move in ["e4", "a5", "e5", "Nc6", "d4", "d5"]:
+            board.push_san(move)
 
-            # test input_state
-            input_state = self.env.state_to_input(self.env.board)
-
-        # names = ['white_turn', 'black_turn',
-        # 	'castling_king_white', 'castling_king_black', 'castling_queen_white', 'castling_queen_black',
-        # 	'is_repitition',
-        # 	'white_pawns', 'white_knights', 'white_bishops', 'white_rooks', 'white_queens', 'white_king',
-        # 	'black_pawns', 'black_knights', 'black_bishops', 'black_rooks', 'black_queens', 'black_king',
-        # 	'en_passant']
-        # utils.save_input_state_to_imgs(input_state, 'tests/input_planes', names)
+        # test input_state
+        input_state = ChessEnv.state_to_input(board.fen())
+        # reshape
+        input_state = np.reshape(input_state, (19, 8, 8))
+        print(input_state.shape)
+        
+        utils.save_input_state_to_imgs(input_state, 'tests/input_planes')
 
     @utils.time_function
     def test_mask1(self):
@@ -85,7 +80,7 @@ class Test:
 
 if __name__ == "__main__":
     test = Test()
-    # test.run_state_to_input_test(n=20)
+    test.run_state_to_input_test()
     # test.test_mask1()
     # test.test_mask2()
     # test.test_mask3()
@@ -94,4 +89,4 @@ if __name__ == "__main__":
     # test.test_mcts_tree(400)
     # test.test_mcts_tree(1200)
 
-    test.test_position_outputs("1k6/1pp5/p3B2p/3Pq3/2P1p3/PP3r2/4Q3/5RK1 b - - 0 36", 400)
+    # test.test_position_outputs("1k6/1pp5/p3B2p/3Pq3/2P1p3/PP3r2/4Q3/5RK1 b - - 0 36", 400)
