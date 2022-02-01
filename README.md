@@ -26,14 +26,21 @@ for a long time.
 ### The neural network
 
 * Input layer: 19 8x8 boards of booleans
+
+<img src="code/tests/input_planes/full.png" alt="Input example" width="80%"/>
+
 * 20 hidden layers:
 	* Convolutional hidden layer
 	* 19 residual blocks with skip-connections
 * 2 outputs:
-	1. The win probabilities of each move (73 boards of 8x8 booleans)
+	1. The win probabilities of each move (73 boards of 8x8 floats)
 	2. The value of the given board (scalar)
 
+<img src="code/tests/output_planes/unfiltered.png" alt="Output example" width="100%"/>
+
 => 30+ million parameters
+
+A visual representation of the model can be found in `./models/model.png`
 
 Every move, run a high number amount of MCTS simulations. AlphaZero uses an custom version of MCTS.
 
@@ -120,6 +127,37 @@ AlphaZero uses a different kind of MCTS:
 |:-:| :-: |
 |![First training session](code/plots/first-training.png) | ![Second training session](code/plots/second-training-0.002.png) |
 
+
+### Multi-processing improvements
+
+It is necessary to create a huge training set of positions by making the current best AI play against itself. 
+To do that, I had the problem that playing multiple games in parallel was not possible because every agent needs access to the network:
+
+![Self-play without multiprocessing](code/img/without-multiprocessing.png "Self-play without multiprocessing")
+
+To fix this, I created a server-client architecture with Python sockets: the server has access to the neural network, 
+and the client sends predictions to the server. The server then sends the predictions back to the correct client. This is much more scalable and can be dockerized.
+
+![Self-play with multiprocessing](code/img/with-multiprocessing.png "Self-play with multiprocessing")
+
+With a good system as a server (Ryzen 7 5800H + RTX 3070 Mobile), multiple clients (including clients on the system itself) can be connected to the server. 
+
+The result: much faster self-play. The other clients' GPUs do not get used, meaning any system with a good processor can run multiple self-play games in parallel when connected to a server.
+
+|System|No multiprocessing|Multiprocessing (16 processes)|
+|:-|:-------------------:|:-------------------:|
+|R7 5800H + RTX 3070|50 sims/sec|30 sims/sec each process|
+|i7 7700HQ + GTX 1050|20 sims/sec|15 sims/sec each process|
+
+I dockerized this server-client system so it can be deployed on a cluster.
+You can find the configuration in code/docker-compose.yml, and the Dockerfiles in code/Dockerfile{client,server}.
+The docker images are also pushed to `ghcr.io`: 
+
+* The server: https://ghcr.io/zjeffer/chess-rl_prediction-server:latest
+	* There is also a special server image if you're using an older Nvidia version (470 and CUDA 11.4): 
+	* https://ghcr.io/zjeffer/chess-rl_prediction-server:cuda-11.4
+* The client: https://ghcr.io/zjeffer/chess-rl_selfplay-client:latest
+
 ### Evaluate the network
 
 To know whether the new network is better than the previous one, let the new network play against the previous best for a high amount of games. Whoever wins the most games, is the new best network.
@@ -136,32 +174,6 @@ Model 2: 5
 Draws: 5
 ```
 
-
-### Multi-processing improvements
-
-![Self-play without multiprocessing](code/img/without-multiprocessing.png "Self-play without multiprocessing")
-
-
-![Self-play with multiprocessing](code/img/with-multiprocessing.png "Self-play with multiprocessing")
-
-With a good system as a server (Ryzen 7 5800H + RTX 3070 Mobile), multiple clients (including clients on the system itself) can be connected to the server. 
-
-The result: much faster self-play. The other clients' GPUs do not get used, meaning any system with a good processor can run multiple self-play games in parallel when connected to a server.
-
-
-|System|No multiprocessing|Multiprocessing (16 processes)|
-|:-|:-------------------:|:-------------------:|
-|R7 5800H + RTX 3070|50 sims/sec|30 sims/sec each process|
-|i7 7700HQ + GTX 1050|20 sims/sec|15 sims/sec each process|
-
-I dockerized this server-client system so it can be deployed on a cluster.
-You can find the configuration in code/docker-compose.yml, and the Dockerfiles in code/Dockerfile{client,server}.
-The docker images are also pushed to `ghcr.io`: 
-
-* The server: https://ghcr.io/zjeffer/chess-rl_prediction-server:latest
-	* There is also a special server image if you're using an older Nvidia version (470 and CUDA 11.4): 
-	* https://ghcr.io/zjeffer/chess-rl_prediction-server:cuda-11.4
-* The client: https://ghcr.io/zjeffer/chess-rl_selfplay-client:latest
 
 # Installation and user manual
 
