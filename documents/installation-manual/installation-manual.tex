@@ -9,7 +9,7 @@
 \usepackage{amsmath}
 \usepackage{wrapfig}
 \usepackage[parfill]{parskip}
-
+\usepackage{eso-pic}
 
 \usepackage{tcolorbox}
 
@@ -39,20 +39,49 @@
 \usepackage{upquote}
 \usepackage{color}
 
+\definecolor{titlepagecolor}{RGB}{68,200,245}
+
 \begin{document}
 
 \begin{titlepage}
-    \author{Tuur Vanhoutte}
-    \title{Chess with Deep Reinforcement Learning: Installation Manual}
+    \pagecolor{titlepagecolor}
+    \newgeometry{left=3cm,right=1cm,bottom=1cm}
+    \noindent
+\begin{flushright}
+\vspace*{5cm}
+ \vspace{2cm}
+\end{flushright}
+    \color{white}
+    \par
+    \noindent
+    \color{white}
+    \makebox[0pt][l]{\rule{1.3\textwidth}{1pt}}
+    \par\medskip
+    {\noindent \Huge\textbf{\textsf{Chess with Deep Reinforcement Learning: Installation Manual}}}
+    \par\medskip
+    {\noindent\Large\textsf{Tuur Vanhoutte}}
+    \par  
+\vfill%
 \end{titlepage}
+\restoregeometry
+\nopagecolor
 
 \pagenumbering{gobble}
-\maketitle
-\newpage
 \tableofcontents
 \newpage
 
 \pagenumbering{arabic}
+
+\AddToShipoutPicture{
+    \ifnum\value{page}>0
+    \AtPageLowerLeft{
+    \raisebox{3\baselineskip}{\makebox[0.25\paperwidth]{
+        \begin{minipage}{21cm}\centering
+            \includegraphics{img/background.png}
+        \end{minipage}}}
+    }
+  \fi
+}
 
 \section{Requirements}
 
