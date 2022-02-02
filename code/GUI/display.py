@@ -137,11 +137,9 @@ class GUI:
                 elif self.from_square is None:
                     # fist click: get from_square
                     self.from_square = self.gameboard.get_square_on_pos(x, y)
-                    print(f"from_square: {self.from_square}")
                 elif self.gameboard.get_square_on_pos(x, y) != self.from_square:
                     # from and to_square are different, try to move piece
                     self.to_square = self.gameboard.get_square_on_pos(x, y)
-                    print(f"to_square: {self.to_square}")
                     piece = self.gameboard.get_piece_to_move(
                         self.from_square, self.to_square)
                     if piece is None:
@@ -158,7 +156,6 @@ class GUI:
                     to_square = Board.square_to_string(
                         Board.tuple_to_square(*self.to_square))
                     if piece.piece_type == chess.PAWN and ((piece.color == chess.WHITE and to_square[1] == '8') or (piece.color == chess.BLACK and to_square[1] == '1')):
-                        print("Promotion")
                         # get promotion from menu
                         self.promotion_choice: chess.PieceType = None
                         self.show_promotion_menu()
