@@ -241,18 +241,18 @@ The installation manual and the user manual can both be found under `./documents
 * [25]“Simple Alpha Zero.” https://web.stanford.edu/~surag/posts/alphazero.html (accessed Feb. 01, 2022).
 
 * [26]D. Straus, “AlphaZero implementation and tutorial,” Medium, Jan. 27, 2020. https://towardsdatascience.com/alphazero-implementation-and-tutorial-f4324d65fdfc (accessed Feb. 01, 2022).
-	* Updated article: [19]“How I trained a self-supervised neural network to beat GnuGo on small (7x7) boards | by Darin Straus | Analytics Vidhya | Medium.” https://medium.com/analytics-vidhya/how-i-trained-a-self-supervised-neural-network-to-beat-gnugo-on-small-7x7-boards-6b5b418895b7 (accessed Feb. 01, 2022).
-	* [4]cody2007, alpha_go_zero_implementation. 2021. Accessed: Feb. 01, 2022. [Online]. Available: https://github.com/cody2007/alpha_go_zero_implementation
+	* Updated article: [27]“How I trained a self-supervised neural network to beat GnuGo on small (7x7) boards | by Darin Straus | Analytics Vidhya | Medium.” https://medium.com/analytics-vidhya/how-i-trained-a-self-supervised-neural-network-to-beat-gnugo-on-small-7x7-boards-6b5b418895b7 (accessed Feb. 01, 2022).
+	* [28]cody2007, alpha_go_zero_implementation. 2021. Accessed: Feb. 01, 2022. [Online]. Available: https://github.com/cody2007/alpha_go_zero_implementation
 
 
 
 ## Interesting videos
 
-* [27]Lex Fridman, David Silver: AlphaGo, AlphaZero, and Deep Reinforcement Learning | Lex Fridman Podcast #86, (Apr. 03, 2020). Accessed: Feb. 01, 2022. [Online]. Available: https://www.youtube.com/watch?v=uPUEq8d73JI
+* [29]Lex Fridman, David Silver: AlphaGo, AlphaZero, and Deep Reinforcement Learning | Lex Fridman Podcast #86, (Apr. 03, 2020). Accessed: Feb. 01, 2022. [Online]. Available: https://www.youtube.com/watch?v=uPUEq8d73JI
 
-* [28]DeepMind, RL Course by David Silver - Lecture 1: Introduction to Reinforcement Learning, (May 13, 2015). Accessed: Feb. 01, 2022. [Online]. Available: https://www.youtube.com/watch?v=2pWv7GOvuf0
+* [30]DeepMind, RL Course by David Silver - Lecture 1: Introduction to Reinforcement Learning, (May 13, 2015). Accessed: Feb. 01, 2022. [Online]. Available: https://www.youtube.com/watch?v=2pWv7GOvuf0
 
-* [29]Aske Plaat, Keynote David Silver NIPS 2017 Deep Reinforcement Learning Symposium AlphaZero, (Dec. 10, 2017). Accessed: Feb. 01, 2022. [Online]. Available: https://www.youtube.com/watch?v=A3ekFcZ3KNw
+* [31]Aske Plaat, Keynote David Silver NIPS 2017 Deep Reinforcement Learning Symposium AlphaZero, (Dec. 10, 2017). Accessed: Feb. 01, 2022. [Online]. Available: https://www.youtube.com/watch?v=A3ekFcZ3KNw
 
 
 
