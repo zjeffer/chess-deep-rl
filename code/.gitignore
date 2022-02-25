@@ -1,8 +1,9 @@
 __pycache__
-models/[^.]*
+models/*.h5
 memory/[^.]*
 plots/old/*
 plots/loss-*.png
 puzzles/[^.]*
 progress.md
 full_games.txt
+savedmodel/
