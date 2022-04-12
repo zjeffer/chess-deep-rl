@@ -1,7 +1,9 @@
 .git/
 img/
 memory/old/
-models/model_*
+models/*.h5
 plots/
 puzzles/
 tests/
+savedmodel/
+GUI/
