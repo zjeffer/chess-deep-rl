@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 50))
+SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 600))
 
 # exploration parameters 
 C_base = 20000
@@ -12,7 +12,7 @@ C_init = 2
 
 # if stochastic, use epsilon-greedy to not always pick moves from the prob dist,
 # but sometimes pick deterministically
-EPSILON = 0.8
+EPSILON = 0.9
 
 # limit the amount of moves played in a game
 MAX_PUZZLE_MOVES = 4
@@ -46,7 +46,7 @@ OUTPUT_SHAPE = (8*8*amount_of_planes, 1)
 
 # ============= NEURAL NETWORK PARAMETERS =============
 # change if necessary. AZ started with 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
-LEARNING_RATE = 0.2
+LEARNING_RATE = 0.002
 # filters for the convolutional layers (AZ: 256)
 CONVOLUTION_FILTERS = 256
 # amount of hidden residual layers
@@ -59,7 +59,7 @@ AMOUNT_OF_RESIDUAL_BLOCKS = 19
 MODEL_FOLDER = os.environ.get("MODEL_FOLDER" ,'./models')
 
 # ============= TRAINING PARAMETERS =============
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 LOSS_PLOTS_FOLDER="./plots"
 
 # ============= MEMORY CONFIGURATION =============

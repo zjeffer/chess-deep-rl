@@ -144,7 +144,7 @@ if __name__ == "__main__":
     # parse arguments
     parser = argparse.ArgumentParser(description='Create the neural network for chess')
     parser.add_argument('--model-folder', type=str, default='models/', help='Folder to save the model')
-    parser.add_argument('--model-name', type=str, default='model', help='Name of the model (without extension')
+    parser.add_argument('--model-name', type=str, default='model', help='Name of the model (without extension)')
     args = parser.parse_args()
     args = vars(args)
 

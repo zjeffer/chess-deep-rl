@@ -74,7 +74,7 @@ class Trainer:
         """
         history = []
         X, (y_probs, y_value) = self.split_Xy(data)
-        for _ in tqdm(range(max(5, len(data) // self.batch_size))):
+        for _ in tqdm(range(2*max(5, len(data) // self.batch_size))):
             indexes = np.random.choice(len(data), size=self.batch_size, replace=True)
             # only select X values with these indexes
             X_batch = X[indexes]
@@ -96,11 +96,11 @@ class Trainer:
         plt.plot(value_loss, label='value_head_loss')
         plt.legend()
         plt.title(f"Loss over time\nLearning rate: {config.LEARNING_RATE}")
-        plt.savefig(f'{config.LOSS_PLOTS_FOLDER}/loss-{str(uuid.uuid4())[:8]}.png')
-        del df
+        plt.savefig(f"{config.LOSS_PLOTS_FOLDER}/loss-{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.png")
 
     def save_model(self):
-        path = f"model-{datetime.now().strftime('%Y-%M-%d_%H:%m:%S')}.h5"
+        os.makedirs(config.MODEL_FOLDER, exist_ok=True)
+        path = f"{config.MODEL_FOLDER}/model-{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.h5"
         save_model(self.model, path)
         print(f"Model trained. Saved model to {path}")
 
@@ -131,8 +131,8 @@ if __name__ == "__main__":
     # delete drawn games
     # data = data[data[:,2] != 0]
     print(f"Training with {len(data)} positions")
-    # history = trainer.train_random_batches(data)
-    history = trainer.train_all_data(data)
+    history = trainer.train_random_batches(data)
+    # history = trainer.train_all_data(data)
     # plot history
     trainer.plot_loss(history)
     # save the new model

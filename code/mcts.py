@@ -147,9 +147,6 @@ class MCTS:
             thread = threading.Thread(
                 target=self.map_valid_move, args=(move,))
             threads.append(thread)
-
-        # start all threads
-        for thread in threads:
             thread.start()
 
         # wait until all threads are done

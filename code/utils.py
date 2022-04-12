@@ -130,3 +130,31 @@ def get_height_of_tree(node: Node):
     for edge in node.edges:
         h = max(h, get_height_of_tree(edge.output_node))
     return h + 1
+
+if __name__ == "__main__":
+    board = chess.Board()
+    board.push_san("e4")
+    board.push_san("e5")
+    board.push_san("Nf3")
+    board.push_san("Nc6")
+    board.push_san("Bc4")
+    board.push_san("Bc5")
+    board.push_san("Nc3")
+    board.push_san("Nf6")
+    board.push_san("Bb5")
+
+    from chessEnv import ChessEnv
+
+    from agent import Agent
+    agent = Agent(local_predictions=True, model_path="models/badmodel.h5", state=board.fen())
+
+    input_state = ChessEnv.state_to_input(board.fen())
+    p, v = agent.predict(input_state)
+
+    print(p)
+
+    probabilities = p.reshape(config.amount_of_planes, config.n, config.n)
+
+    input_state = np.reshape(input_state, (19, 8, 8))
+    # save_input_state_to_imgs(input_state, "tests")
+    save_output_state_to_imgs(probabilities, "tests/output_planes", "bad_model")
