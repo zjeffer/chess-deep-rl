@@ -1,5 +1,9 @@
 # Chess engine with Deep Reinforcement learning
 
+## Installation and user manual
+
+The installation manual and the user manual can both be found under `./documents/`
+
 To download my pretrained model, use this link: https://studenthowest-my.sharepoint.com/:u:/g/personal/tuur_vanhoutte_student_howest_be/ERs9S6KqbtdGgC9eVunsjJcBR0VRuUnbGnTmOaWde6Utvw
 
 Put the model.h5 file in the models/ folder.
@@ -174,10 +178,6 @@ Model 2: 5
 Draws: 5
 ```
 
-
-# Installation and user manual
-
-The installation manual and the user manual can both be found under `./documents/`
 
 # Sources
 
