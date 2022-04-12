@@ -136,11 +136,11 @@ There are two ways to create a training set:
 The first method can easily be deployed using the docker-compose file:
 
 \begin{minted}{shell}
-# in repository's root folder:
+# in repository's code/ folder:
 docker-compose up --build
 \end{minted}
 
-This will deploy one prediction server and 4 clients $\Rightarrow$ 4 parallel games will play. 
+This will deploy one prediction server and 8 clients $\Rightarrow$ 8 parallel games will play. 
 The data for the training set will be stored in ./memory.
 The amount of clients can be changed in the docker-compose file. 
 You can also use the two docker images in a cluster like Kubernetes, to
