@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.5.1-runtime-ubuntu20.04
+FROM nvidia/cuda:11.6.2-runtime-ubuntu20.04
 
 RUN apt update && apt upgrade -y && apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y
 RUN DEBIAN_FRONTEND=noninteractive apt install -y curl python3.10 python3.10-distutils libcudnn8

@@ -146,7 +146,7 @@ if __name__ == "__main__":
     from chessEnv import ChessEnv
 
     from agent import Agent
-    agent = Agent(local_predictions=True, model_path="models/badmodel.h5", state=board.fen())
+    agent = Agent(local_predictions=True, model_path="models/model-2022-04-13_19:39:50.h5", state=board.fen())
 
     input_state = ChessEnv.state_to_input(board.fen())
     p, v = agent.predict(input_state)
@@ -155,6 +155,6 @@ if __name__ == "__main__":
 
     probabilities = p.reshape(config.amount_of_planes, config.n, config.n)
 
-    input_state = np.reshape(input_state, (19, 8, 8))
+    # input_state = np.reshape(input_state, (19, 8, 8))
     # save_input_state_to_imgs(input_state, "tests")
-    save_output_state_to_imgs(probabilities, "tests/output_planes", "bad_model")
+    save_output_state_to_imgs(probabilities, "./", "output_state")

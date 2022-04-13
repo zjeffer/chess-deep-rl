@@ -3,9 +3,9 @@ version: "3.8"
 services:
   prediction-server:
     image: ghcr.io/zjeffer/chess-rl_prediction-server:latest
-    # build:    # for local development
-    #   context: .
-    #   dockerfile: Dockerfile.server
+    build:    # for local development
+      context: .
+      dockerfile: Dockerfile.server
     expose:
       - 5000
     privileged: true
@@ -13,6 +13,8 @@ services:
       - SOCKET_HOST=0.0.0.0
       - SOCKET_PORT=5000
       - MODEL_FOLDER=/models
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
     volumes:
       - ./models:/models
     deploy:
@@ -26,9 +28,9 @@ services:
       - default
   selfplay-client:
     image: ghcr.io/zjeffer/chess-rl_selfplay-client:latest
-    # build:    # for local development
-    #   context: .
-    #   dockerfile: Dockerfile.client
+    build:    # for local development
+      context: .
+      dockerfile: Dockerfile.client
     environment:
       - SOCKET_HOST=prediction-server
       - SOCKET_PORT=5000
