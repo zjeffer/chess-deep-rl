@@ -35,7 +35,7 @@ BASICFONTSIZE = 30
 
 class GUI:
     def __init__(self, width: int, height: int, player: bool, fen: str = chess.STARTING_FEN):
-        self.gameboard = None
+        self.gameboard: Board = None
         self.WINDOWWIDTH = width
         self.WINDOWHEIGHT = height
         self.player = player
@@ -69,6 +69,7 @@ class GUI:
         self.DISPLAYSURF.fill(BGCOLOR)
         self.gameboard = Board(
             colors, BGCOLOR, self.DISPLAYSURF, self.WINDOWWIDTH, self.WINDOWHEIGHT)
+        self.gameboard.board.fen = self.fen
         self.gameboard.displayBoard()
 
         self.promotion_menu = InfoBox(
@@ -97,7 +98,6 @@ class GUI:
         self.draw()
 
     def promote(self, piece: chess.PieceType) -> None:
-        print("Trying to promote piece")
         self.move_piece(piece)
 
     def show_promotion_menu(self) -> None:

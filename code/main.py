@@ -34,7 +34,7 @@ class Main:
 
         # gui on main thread
         self.GUI = GUI(800, 800, player)
-        self.GUI.fen = self.game.env.board.fen()
+        self.GUI.gameboard.board.fen = self.game.env.board.fen()
         
         # create separate thread for game logic
         thread = threading.Thread(target=self.play_game)

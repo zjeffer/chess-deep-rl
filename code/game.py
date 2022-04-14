@@ -55,6 +55,9 @@ class Game:
             logging.info(f"\n{self.env.board}")
             logging.info(f"Value according to white: {self.white.mcts.root.value}")
             logging.info(f"Value according to black: {self.black.mcts.root.value}")
+            if os.environ.get("SELFPLAY_SHOW_BOARD") == "true":
+                self.GUI.gameboard.board.set_fen(self.env.board.fen()) 
+                self.GUI.draw()
 
             # end if the game drags on too long
             counter += 1

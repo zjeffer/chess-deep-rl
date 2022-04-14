@@ -34,9 +34,14 @@ services:
     environment:
       - SOCKET_HOST=prediction-server
       - SOCKET_PORT=5000
-      - SIMULATIONS_PER_MOVE=400
+      - SIMULATIONS_PER_MOVE=10
+      - DISPLAY=:0
+      - ~/.Xauthority:/root/.Xauthority
+      - SDL_AUDIODRIVER=dsp
+      - SELFPLAY_SHOW_BOARD=true
     volumes:
       - ./memory:/memory
+      - /tmp/.X11-unix:/tmp/.X11-unix
     depends_on:
       - prediction-server
     deploy:
@@ -46,6 +51,12 @@ services:
         delay: 5s
         max_attempts: 3
         window: 10s
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     networks:
       - default
   

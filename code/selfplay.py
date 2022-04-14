@@ -15,6 +15,8 @@ import config
 import numpy as np
 import chess
 import pandas as pd
+from GUI.display import GUI
+
 
 # set logging config
 logging.basicConfig(level=logging.INFO, format=' %(message)s')
@@ -51,7 +53,11 @@ def self_play(local_predictions=False):
     game = setup(local_predictions=local_predictions)
 
     # play games continuously
+    gui = GUI(400, 400, game.env.board.turn)
+    game.GUI = gui
     while True:
+        game.GUI.gameboard.board.set_fen(game.env.board.fen()) 
+        game.GUI.draw()
         game.play_one_game(stochastic=True)
 
 def puzzle_solver(puzzles, local_predictions=False):

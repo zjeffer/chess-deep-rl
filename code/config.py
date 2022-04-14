@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ============= MCTS =============
-SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 600))
+SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 400))
 
 # exploration parameters 
 C_base = 20000
