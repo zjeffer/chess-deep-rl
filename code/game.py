@@ -102,7 +102,7 @@ class Game:
 
         if previous_moves[0] is None or previous_moves[1] is None:
             # create new tree with root node == current board
-            current_player.mcts = MCTS(current_player, state=self.env.board.fen())
+            current_player.mcts = MCTS(current_player, state=self.env.board.fen(), stochastic=stochastic)
         else:
             # change the root node to the node after playing the two previous moves
             try:
@@ -111,7 +111,7 @@ class Game:
                 current_player.mcts.root = node
             except AttributeError:
                 logging.warning("WARN: Node does not exist in tree, continuing with new tree...")
-                current_player.mcts = MCTS(current_player, state=self.env.board.fen())
+                current_player.mcts = MCTS(current_player, state=self.env.board.fen(), stochastic=stochastic)
         # play n simulations from the root node
         current_player.run_simulations(n=config.SIMULATIONS_PER_MOVE)
 
@@ -123,8 +123,7 @@ class Game:
         sum_move_visits = sum(e.N for e in moves)
         probs = [e.N / sum_move_visits for e in moves]
         
-        # added epsilon to avoid choosing random moves too many times
-        if stochastic and np.random.random() < config.EPSILON:
+        if stochastic:
             # choose a move based on a probability distribution
             best_move = np.random.choice(moves, p=probs)
         else:

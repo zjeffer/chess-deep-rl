@@ -22,7 +22,7 @@ import logging
 
 
 class MCTS:
-    def __init__(self, agent: "Agent", state: str = chess.STARTING_FEN):
+    def __init__(self, agent: "Agent", state: str = chess.STARTING_FEN, stochastic=False):
         """
         An object of the MCTS class represents a tree that can be built using 
         the Monte Carlo Tree Search algorithm. The tree contists of nodes and edges.
@@ -36,6 +36,7 @@ class MCTS:
         self.cur_board: chess.Board = None
 
         self.agent = agent
+        self.stochastic = stochastic
 
     def run_simulations(self, n: int) -> None:
         """
@@ -70,8 +71,20 @@ class MCTS:
             if not len(node.edges):
                 # if the node is terminal, return the node
                 return node
-            best_edge: Edge = max(
-                node.edges, key=lambda edge: edge.upper_confidence_bound())
+            noise = [1 for _ in range(len(node.edges))]
+            if self.stochastic and node == self.root:
+                noise = np.random.dirichlet([config.DIRICHLET_NOISE]*len(node.edges))
+            best_edge = None
+            best_score = -np.inf                
+            for i, edge in enumerate(node.edges):
+                if edge.upper_confidence_bound(noise[i]) > best_score:
+                    best_score = edge.upper_confidence_bound(noise[i])
+                    best_edge = edge
+
+            if best_edge is None:
+                # this should never happen
+                raise Exception("No edge found")
+        
             # get that actions's new node
             node = best_edge.output_node
             self.game_path.append(best_edge)

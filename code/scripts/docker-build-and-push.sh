@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo -e "========== Building server image\n"
-docker build -f Dockerfile.server -t chess-rl_prediction-server .
+docker build -f Dockerfile.server -t ghcr.io/zjeffer/chess-rl_prediction-server .
 
 if [ $? -ne 0 ]; then
 	echo "Failed to build server image"
@@ -10,7 +10,7 @@ fi
 
 echo -e "\n========== Server image built"
 echo -e "==========Building client image\n"
-docker build -f Dockerfile.client -t chess-rl_selfplay-client .
+docker build -f Dockerfile.client -t ghcr.io/zjeffer/chess-rl_selfplay-client .
 
 if [ $? -ne 0 ]; then
 	echo "Failed to build client image"

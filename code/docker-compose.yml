@@ -3,7 +3,7 @@ version: "3.8"
 services:
   prediction-server:
     image: ghcr.io/zjeffer/chess-rl_prediction-server:latest
-    build:    # for local development
+    build:
       context: .
       dockerfile: Dockerfile.server
     expose:
@@ -28,13 +28,13 @@ services:
       - default
   selfplay-client:
     image: ghcr.io/zjeffer/chess-rl_selfplay-client:latest
-    build:    # for local development
+    build:
       context: .
       dockerfile: Dockerfile.client
     environment:
       - SOCKET_HOST=prediction-server
       - SOCKET_PORT=5000
-      - SIMULATIONS_PER_MOVE=400
+      - SIMULATIONS_PER_MOVE=50
       - DISPLAY=$DISPLAY
       - ~/.Xauthority:/root/.Xauthority
       - SDL_AUDIODRIVER=dsp

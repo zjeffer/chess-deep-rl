@@ -10,9 +10,7 @@ SIMULATIONS_PER_MOVE = int(os.environ.get("SIMULATIONS_PER_MOVE", 400))
 C_base = 20000
 C_init = 2
 
-# if stochastic, use epsilon-greedy to not always pick moves from the prob dist,
-# but sometimes pick deterministically
-EPSILON = 0.9
+DIRICHLET_NOISE = 0.3
 
 # limit the amount of moves played in a game
 MAX_PUZZLE_MOVES = 4

@@ -28,9 +28,9 @@ class Edge:
     def __repr__(self):
         return f"{self.action.uci()}: Q={self.W / self.N if self.N != 0 else 0}, N={self.N}, W={self.W}, P={self.P}, U = {self.upper_confidence_bound()}"
 
-    def upper_confidence_bound(self) -> float:
+    def upper_confidence_bound(self, noise: float) -> float:
         exploration_rate = math.log((1 + self.input_node.N + config.C_base) / config.C_base) + config.C_init
-        ucb = exploration_rate * self.P * (math.sqrt(self.input_node.N) / (1 + self.N))
+        ucb = exploration_rate * (self.P * noise) * (math.sqrt(self.input_node.N) / (1 + self.N))
         if self.input_node.turn == chess.WHITE:
             return self.W / (self.N + 1) + ucb 
         else:
