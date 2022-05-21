@@ -98,13 +98,13 @@ class ChessEnv:
                 score += piece_scores[piece.piece_type]
             else:
                 score -= piece_scores[piece.piece_type]
-        if np.abs(score) > 2:
+        if np.abs(score) > 5:
             if score > 0:
                 logging.debug("White wins (estimated)")
-                return 0.5
+                return 0.25
             else:
                 logging.debug("Black wins (estimated)")
-                return -0.5
+                return -0.25
         else:
             logging.debug("Draw")
             return 0

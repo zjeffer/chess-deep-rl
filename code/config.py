@@ -16,7 +16,7 @@ EPSILON = 0.9
 
 # limit the amount of moves played in a game
 MAX_PUZZLE_MOVES = 4
-MAX_GAME_MOVES = 100
+MAX_GAME_MOVES = 200
 
 # ============= NEURAL NETWORK INPUTS =============
 # 2 players, 6 pieces, 8x8 board
@@ -46,7 +46,7 @@ OUTPUT_SHAPE = (8*8*amount_of_planes, 1)
 
 # ============= NEURAL NETWORK PARAMETERS =============
 # change if necessary. AZ started with 0.2 and then dropped three times to 0.02, 0.002 and 0.0002
-LEARNING_RATE = 0.002
+LEARNING_RATE = 0.2
 # filters for the convolutional layers (AZ: 256)
 CONVOLUTION_FILTERS = 256
 # amount of hidden residual layers

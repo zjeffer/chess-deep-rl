@@ -18,7 +18,7 @@ from tensorflow.keras.models import load_model
 
 logging.basicConfig(level=logging.INFO, format=' %(message)s')
 
-model = load_model(config.MODEL_FOLDER + "/model-2022-04-14_20:31:55.h5")
+model = load_model(config.MODEL_FOLDER + "/model-2022-04-18_00:29:41-from-12-april.h5")
 
 @tf.function(experimental_follow_type_hints=True)
 def predict(args: tf.Tensor) -> Tuple[list[tf.float32], list[list[tf.float32]]]:

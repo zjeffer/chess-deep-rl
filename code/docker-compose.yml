@@ -34,14 +34,15 @@ services:
     environment:
       - SOCKET_HOST=prediction-server
       - SOCKET_PORT=5000
-      - SIMULATIONS_PER_MOVE=10
-      - DISPLAY=:0
+      - SIMULATIONS_PER_MOVE=400
+      - DISPLAY=$DISPLAY
       - ~/.Xauthority:/root/.Xauthority
       - SDL_AUDIODRIVER=dsp
-      - SELFPLAY_SHOW_BOARD=true
+      - SELFPLAY_SHOW_BOARD=false
     volumes:
       - ./memory:/memory
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./full_games.txt:/full_games.txt
     depends_on:
       - prediction-server
     deploy:

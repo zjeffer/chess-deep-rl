@@ -52,12 +52,16 @@ def self_play(local_predictions=False):
     """
     game = setup(local_predictions=local_predictions)
 
+    show_board = os.environ.get("SELFPLAY_SHOW_BOARD") == "true"
+
     # play games continuously
-    gui = GUI(400, 400, game.env.board.turn)
-    game.GUI = gui
+    if show_board:
+        gui = GUI(400, 400, game.env.board.turn)
+        game.GUI = gui
     while True:
-        game.GUI.gameboard.board.set_fen(game.env.board.fen()) 
-        game.GUI.draw()
+        if show_board:
+            game.GUI.gameboard.board.set_fen(game.env.board.fen())
+            game.GUI.draw()
         game.play_one_game(stochastic=True)
 
 def puzzle_solver(puzzles, local_predictions=False):

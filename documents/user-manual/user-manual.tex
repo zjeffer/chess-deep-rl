@@ -146,6 +146,10 @@ The amount of clients can be changed in the docker-compose file.
 You can also use the two docker images in a cluster like Kubernetes, to
 reliably deploy many more servers and clients in parallel.
 
+Using the created GUI, it is possible to visualize the self-play of all these boards in real-time.
+This can be done by settings the ``SELFPLAY\_SHOW\_BOARD'' environment variable in docker-compose.yml to ``true''.
+For every replica of the client, a new PyGame window will open where the board will change in real-time. 
+
 To manually run self-play or to solve puzzles, you can run the selfplay.py file 
 with specific arguments. For a detailed description of the arguments, run:
 
