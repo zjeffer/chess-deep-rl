@@ -1,5 +1,7 @@
 # Chess engine with Deep Reinforcement learning
 
+***I'm currently rewriting the whole thing in C++, you can check it out [here](https://github.com/zjeffer/chess-deep-rl-cpp).***
+
 ## Installation and user manual
 
 The installation manual and the user manual can both be found under `./documents/`
