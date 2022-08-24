@@ -6,7 +6,7 @@
 
 The installation manual and the user manual can both be found under `./documents/`
 
-To download my pretrained model, use this link: https://studenthowest-my.sharepoint.com/:u:/g/personal/tuur_vanhoutte_student_howest_be/ERs9S6KqbtdGgC9eVunsjJcBR0VRuUnbGnTmOaWde6Utvw
+To download my pretrained model, use this link: https://www.mediafire.com/file/75mzcj2aqcs6g6z/model.h5/file
 
 Put the model.h5 file in the models/ folder.
 
