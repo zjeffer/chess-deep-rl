@@ -2,6 +2,8 @@
 
 ***I'm currently rewriting the whole thing in C++, you can check it out [here](https://github.com/zjeffer/chess-deep-rl-cpp).***
 
+***You can read my bachelor thesis about this project [here](https://github.com/zjeffer/howest-thesis).***
+
 ## Installation and user manual
 
 The installation manual and the user manual can both be found under `./documents/`
