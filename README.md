@@ -12,6 +12,9 @@ To download my pretrained model, use this link: https://www.mediafire.com/file/7
 
 Put the model.h5 file in the models/ folder.
 
+Keep in mind this model has not been trained very well at all due to lack of compute resources. It's probably better to train your own model, but keep in mind you'd need *a lot* of compute power.
+I'm only posting it here for people to try out a model that has gone through a few training pipelines.
+
 ## How do normal chess engines work?
 
 Normal chess engines work with the minimax algorithm: the engine tries to find the best move by creating a tree of all possible moves to a certain depth, and cutting down paths that lead to bad positions (alpha-beta pruning). It evaluates a position based on which pieces are on the board.
@@ -135,6 +138,8 @@ AlphaZero uses a different kind of MCTS:
 |:-:| :-: |
 |![First training session](code/plots/first-training.png) | ![Second training session](code/plots/second-training-0.002.png) |
 
+The first training session went pretty well, but the second didn't seem to train much at all. 
+I believe I would need to generate a lot more data through selfplay to properly train the model.
 
 ### Multi-processing improvements
 
