@@ -12,7 +12,8 @@ To download my pretrained model, use this link: https://www.mediafire.com/file/7
 
 Put the model.h5 file in the models/ folder.
 
-Keep in mind this model has not been trained very well at all due to lack of compute resources. It's probably better to train your own model, but keep in mind you'd need *a lot* of compute power.
+> [!WARNING]  
+> Keep in mind this model has not been trained very well at all due to lack of compute resources. It's probably better to train your own model, but keep in mind you'd need *a lot* of compute power.
 I'm only posting it here for people to try out a model that has gone through a few training pipelines.
 
 ## How do normal chess engines work?
